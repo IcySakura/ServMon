@@ -1,0 +1,2006 @@
+{
+ "uid": "servmon-overview",
+ "title": "Servers · Overview (live)",
+ "description": "Live state of all shared servers",
+ "tags": [
+  "servmon"
+ ],
+ "timezone": "browser",
+ "editable": true,
+ "graphTooltip": 1,
+ "schemaVersion": 39,
+ "version": 1,
+ "time": {
+  "from": "now-6h",
+  "to": "now"
+ },
+ "refresh": "15s",
+ "timepicker": {
+  "refresh_intervals": [
+   "5s",
+   "15s",
+   "30s",
+   "1m",
+   "5m",
+   "15m",
+   "1h"
+  ]
+ },
+ "templating": {
+  "list": [
+   {
+    "name": "host",
+    "label": "host",
+    "type": "query",
+    "datasource": {
+     "type": "prometheus",
+     "uid": "servmon-prom"
+    },
+    "query": {
+     "query": "label_values(servmon_up, host)",
+     "refId": "v",
+     "qryType": 1
+    },
+    "definition": "label_values(servmon_up, host)",
+    "refresh": 2,
+    "sort": 1,
+    "multi": true,
+    "includeAll": true,
+    "allValue": ".*",
+    "current": {
+     "selected": true,
+     "text": [
+      "All"
+     ],
+     "value": [
+      "$__all"
+     ]
+    }
+   },
+   {
+    "name": "user",
+    "label": "user",
+    "type": "query",
+    "datasource": {
+     "type": "prometheus",
+     "uid": "servmon-prom"
+    },
+    "query": {
+     "query": "label_values(servmon_user_cpu_cores{host=~\"$host\"}, user)",
+     "refId": "v",
+     "qryType": 1
+    },
+    "definition": "label_values(servmon_user_cpu_cores{host=~\"$host\"}, user)",
+    "refresh": 2,
+    "sort": 1,
+    "multi": true,
+    "includeAll": true,
+    "allValue": ".*",
+    "current": {
+     "selected": true,
+     "text": [
+      "All"
+     ],
+     "value": [
+      "$__all"
+     ]
+    }
+   },
+   {
+    "name": "kind",
+    "label": "workload",
+    "type": "query",
+    "datasource": {
+     "type": "prometheus",
+     "uid": "servmon-prom"
+    },
+    "query": {
+     "query": "label_values(servmon_job_cpu_cores{host=~\"$host\"}, kind)",
+     "refId": "v",
+     "qryType": 1
+    },
+    "definition": "label_values(servmon_job_cpu_cores{host=~\"$host\"}, kind)",
+    "refresh": 2,
+    "sort": 1,
+    "multi": true,
+    "includeAll": true,
+    "allValue": ".*",
+    "current": {
+     "selected": true,
+     "text": [
+      "All"
+     ],
+     "value": [
+      "$__all"
+     ]
+    }
+   }
+  ]
+ },
+ "annotations": {
+  "list": []
+ },
+ "links": [
+  {
+   "type": "dashboards",
+   "tags": [
+    "servmon"
+   ],
+   "asDropdown": false,
+   "includeVars": true,
+   "keepTime": true,
+   "title": "servmon"
+  }
+ ],
+ "panels": [
+  {
+   "type": "row",
+   "title": "Fleet now",
+   "id": 1,
+   "collapsed": false,
+   "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 1
+   },
+   "panels": []
+  },
+  {
+   "type": "table",
+   "title": "Servers",
+   "description": "Current state of each server. idle-held = memory held by jobs that have been idle longer than the collector's idle_after setting.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sum without() (servmon_up{host=~\"$host\"})",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "B",
+     "expr": "100 * servmon_host_cpu_busy_ratio{host=~\"$host\"}",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "C",
+     "expr": "sum without() (servmon_host_load1{host=~\"$host\"})",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "D",
+     "expr": "sum without() (servmon_host_ncpu{host=~\"$host\"})",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "E",
+     "expr": "100 * servmon_host_mem_used_bytes{host=~\"$host\"} / servmon_host_mem_total_bytes",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "F",
+     "expr": "sum without() (servmon_host_mem_total_bytes{host=~\"$host\"})",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "G",
+     "expr": "avg by(host) (servmon_gpu_util_percent{host=~\"$host\"})",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "H",
+     "expr": "100 * sum by(host) (servmon_gpu_mem_used_bytes{host=~\"$host\"}) / sum by(host) (servmon_gpu_mem_total_bytes)",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "I",
+     "expr": "count by(host) (servmon_gpu_util_percent{host=~\"$host\"})",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "J",
+     "expr": "count by(host) (servmon_user_cpu_cores{host=~\"$host\"} > 0.1 or sum by(host,user) (servmon_user_gpu_mem_bytes{host=~\"$host\"}) > 0)",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "K",
+     "expr": "count by(host) (servmon_user_sessions{host=~\"$host\"} > 0)",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "L",
+     "expr": "sum by(host) (servmon_user_idle_gpu_mem_bytes{host=~\"$host\"})",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "M",
+     "expr": "sum by(host) (servmon_user_idle_mem_bytes{host=~\"$host\"})",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "N",
+     "expr": "sum by(host) (servmon_gpu_available{host=~\"$host\"})",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    }
+   ],
+   "transformations": [
+    {
+     "id": "merge",
+     "options": {}
+    },
+    {
+     "id": "organize",
+     "options": {
+      "excludeByName": {
+       "Time": true,
+       "container": false
+      },
+      "renameByName": {
+       "Value #A": "up",
+       "Value #B": "CPU busy",
+       "Value #C": "load1",
+       "Value #D": "cores",
+       "Value #E": "RAM used",
+       "Value #F": "RAM total",
+       "Value #G": "GPU util (avg)",
+       "Value #H": "VRAM used",
+       "Value #I": "GPUs",
+       "Value #J": "active users",
+       "Value #K": "logged-in users",
+       "Value #L": "idle-held VRAM",
+       "Value #M": "idle-held RAM",
+       "Value #N": "GPU status"
+      },
+      "indexByName": {
+       "host": 0,
+       "user": 1,
+       "kind": 2,
+       "pid": 3,
+       "gpu": 4,
+       "cmd": 5,
+       "up": 6,
+       "CPU busy": 7,
+       "load1": 8,
+       "cores": 9,
+       "RAM used": 10,
+       "RAM total": 11,
+       "GPU util (avg)": 12,
+       "VRAM used": 13,
+       "GPUs": 14,
+       "active users": 15,
+       "logged-in users": 16,
+       "idle-held VRAM": 17,
+       "idle-held RAM": 18,
+       "GPU status": 19
+      }
+     }
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "filterable": true,
+      "align": "auto",
+      "cellOptions": {
+       "type": "auto"
+      }
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "up"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "short"
+       },
+       {
+        "id": "custom.cellOptions",
+        "value": {
+         "type": "color-text"
+        }
+       },
+       {
+        "id": "mappings",
+        "value": [
+         {
+          "type": "value",
+          "options": {
+           "0": {
+            "text": "DOWN",
+            "color": "red"
+           },
+           "1": {
+            "text": "up",
+            "color": "green"
+           }
+          }
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "CPU busy"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "percent"
+       },
+       {
+        "id": "custom.cellOptions",
+        "value": {
+         "type": "gauge",
+         "mode": "basic",
+         "valueDisplayMode": "text"
+        }
+       },
+       {
+        "id": "min",
+        "value": 0
+       },
+       {
+        "id": "max",
+        "value": 100
+       },
+       {
+        "id": "decimals",
+        "value": 0
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "load1"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "short"
+       },
+       {
+        "id": "decimals",
+        "value": 1
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "cores"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "short"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "RAM used"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "percent"
+       },
+       {
+        "id": "custom.cellOptions",
+        "value": {
+         "type": "gauge",
+         "mode": "basic",
+         "valueDisplayMode": "text"
+        }
+       },
+       {
+        "id": "min",
+        "value": 0
+       },
+       {
+        "id": "max",
+        "value": 100
+       },
+       {
+        "id": "decimals",
+        "value": 0
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "RAM total"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "bytes"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "GPU util (avg)"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "percent"
+       },
+       {
+        "id": "custom.cellOptions",
+        "value": {
+         "type": "gauge",
+         "mode": "basic",
+         "valueDisplayMode": "text"
+        }
+       },
+       {
+        "id": "min",
+        "value": 0
+       },
+       {
+        "id": "max",
+        "value": 100
+       },
+       {
+        "id": "decimals",
+        "value": 0
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "VRAM used"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "percent"
+       },
+       {
+        "id": "custom.cellOptions",
+        "value": {
+         "type": "gauge",
+         "mode": "basic",
+         "valueDisplayMode": "text"
+        }
+       },
+       {
+        "id": "min",
+        "value": 0
+       },
+       {
+        "id": "max",
+        "value": 100
+       },
+       {
+        "id": "decimals",
+        "value": 0
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "GPUs"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "short"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "active users"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "short"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "logged-in users"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "short"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "idle-held VRAM"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "bytes"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "idle-held RAM"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "bytes"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "GPU status"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "short"
+       },
+       {
+        "id": "custom.cellOptions",
+        "value": {
+         "type": "color-text"
+        }
+       },
+       {
+        "id": "mappings",
+        "value": [
+         {
+          "type": "value",
+          "options": {
+           "0": {
+            "text": "nvidia-smi broken",
+            "color": "orange"
+           },
+           "1": {
+            "text": "ok",
+            "color": "green"
+           }
+          }
+         }
+        ]
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "cmd"
+      },
+      "properties": [
+       {
+        "id": "custom.width",
+        "value": 520
+       },
+       {
+        "id": "custom.inspect",
+        "value": true
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "showHeader": true,
+    "cellHeight": "sm",
+    "footer": {
+     "show": false
+    }
+   },
+   "id": 2,
+   "gridPos": {
+    "x": 0,
+    "y": 1,
+    "w": 24,
+    "h": 8
+   }
+  },
+  {
+   "type": "row",
+   "title": "Load per server",
+   "id": 3,
+   "collapsed": false,
+   "gridPos": {
+    "x": 0,
+    "y": 9,
+    "w": 24,
+    "h": 1
+   },
+   "panels": []
+  },
+  {
+   "type": "timeseries",
+   "title": "CPU busy",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "100 * servmon_host_cpu_busy_ratio{host=~\"$host\"}",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "{{host}}"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percent",
+     "custom": {
+      "lineWidth": 2,
+      "fillOpacity": 8,
+      "showPoints": "never",
+      "spanNulls": 60000,
+      "gradientMode": "none",
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisSoftMin": 0,
+      "insertNulls": false
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "right",
+     "calcs": [
+      "mean",
+      "max",
+      "lastNotNull"
+     ],
+     "showLegend": true,
+     "sortBy": "Mean",
+     "sortDesc": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "id": 4,
+   "gridPos": {
+    "x": 0,
+    "y": 10,
+    "w": 12,
+    "h": 8
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "RAM used (excluding cache)",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "100 * servmon_host_mem_used_bytes{host=~\"$host\"} / servmon_host_mem_total_bytes",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "{{host}}"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percent",
+     "custom": {
+      "lineWidth": 2,
+      "fillOpacity": 8,
+      "showPoints": "never",
+      "spanNulls": 60000,
+      "gradientMode": "none",
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisSoftMin": 0,
+      "insertNulls": false
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "right",
+     "calcs": [
+      "mean",
+      "max",
+      "lastNotNull"
+     ],
+     "showLegend": true,
+     "sortBy": "Mean",
+     "sortDesc": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "id": 5,
+   "gridPos": {
+    "x": 12,
+    "y": 10,
+    "w": 12,
+    "h": 8
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "GPU utilisation",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "servmon_gpu_util_percent{host=~\"$host\"}",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "{{host}} gpu{{gpu}}"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percent",
+     "custom": {
+      "lineWidth": 2,
+      "fillOpacity": 8,
+      "showPoints": "never",
+      "spanNulls": 60000,
+      "gradientMode": "none",
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisSoftMin": 0,
+      "insertNulls": false
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "right",
+     "calcs": [
+      "mean",
+      "max",
+      "lastNotNull"
+     ],
+     "showLegend": true,
+     "sortBy": "Mean",
+     "sortDesc": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "id": 6,
+   "gridPos": {
+    "x": 0,
+    "y": 18,
+    "w": 12,
+    "h": 8
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "VRAM used",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "100 * servmon_gpu_mem_used_bytes{host=~\"$host\"} / servmon_gpu_mem_total_bytes",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "{{host}} gpu{{gpu}}"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percent",
+     "custom": {
+      "lineWidth": 2,
+      "fillOpacity": 8,
+      "showPoints": "never",
+      "spanNulls": 60000,
+      "gradientMode": "none",
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisSoftMin": 0,
+      "insertNulls": false
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "right",
+     "calcs": [
+      "mean",
+      "max",
+      "lastNotNull"
+     ],
+     "showLegend": true,
+     "sortBy": "Mean",
+     "sortDesc": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "id": 7,
+   "gridPos": {
+    "x": 12,
+    "y": 18,
+    "w": 12,
+    "h": 8
+   }
+  },
+  {
+   "type": "row",
+   "title": "Who is using it (selected servers, stacked by user)",
+   "id": 8,
+   "collapsed": false,
+   "gridPos": {
+    "x": 0,
+    "y": 26,
+    "w": 24,
+    "h": 1
+   },
+   "panels": []
+  },
+  {
+   "type": "timeseries",
+   "title": "CPU cores by user",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sum by(user) (servmon_user_cpu_cores{host=~\"$host\",user=~\"$user\"}) > 0.05",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "{{user}}"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short",
+     "custom": {
+      "lineWidth": 1,
+      "fillOpacity": 60,
+      "showPoints": "never",
+      "spanNulls": 60000,
+      "gradientMode": "none",
+      "stacking": {
+       "mode": "normal",
+       "group": "A"
+      },
+      "axisSoftMin": 0,
+      "insertNulls": false
+     },
+     "decimals": 1
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "right",
+     "calcs": [
+      "mean",
+      "max"
+     ],
+     "showLegend": true,
+     "sortBy": "Mean",
+     "sortDesc": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "id": 9,
+   "gridPos": {
+    "x": 0,
+    "y": 27,
+    "w": 12,
+    "h": 9
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "RAM (private) by user",
+   "description": "Anonymous RSS - memory the processes actually own (excludes page cache and shared libs).",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sum by(user) (servmon_user_mem_bytes{host=~\"$host\",user=~\"$user\"}) > 256*1024*1024",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "{{user}}"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "bytes",
+     "custom": {
+      "lineWidth": 1,
+      "fillOpacity": 60,
+      "showPoints": "never",
+      "spanNulls": 60000,
+      "gradientMode": "none",
+      "stacking": {
+       "mode": "normal",
+       "group": "A"
+      },
+      "axisSoftMin": 0,
+      "insertNulls": false
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "right",
+     "calcs": [
+      "mean",
+      "max"
+     ],
+     "showLegend": true,
+     "sortBy": "Mean",
+     "sortDesc": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "id": 10,
+   "gridPos": {
+    "x": 12,
+    "y": 27,
+    "w": 12,
+    "h": 9
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "GPU compute by user (GPU-equivalents)",
+   "description": "Sum of per-process SM utilisation / 100. 1.0 = one GPU fully busy.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sum by(user) (servmon_user_gpu_sm_percent{host=~\"$host\",user=~\"$user\"}) / 100 > 0",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "{{user}}"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short",
+     "custom": {
+      "lineWidth": 1,
+      "fillOpacity": 60,
+      "showPoints": "never",
+      "spanNulls": 60000,
+      "gradientMode": "none",
+      "stacking": {
+       "mode": "normal",
+       "group": "A"
+      },
+      "axisSoftMin": 0,
+      "insertNulls": false
+     },
+     "decimals": 2
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "right",
+     "calcs": [
+      "mean",
+      "max"
+     ],
+     "showLegend": true,
+     "sortBy": "Mean",
+     "sortDesc": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "id": 11,
+   "gridPos": {
+    "x": 0,
+    "y": 36,
+    "w": 12,
+    "h": 9
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "VRAM held by user",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sum by(user) (servmon_user_gpu_mem_bytes{host=~\"$host\",user=~\"$user\"}) > 0",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "{{user}}"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "bytes",
+     "custom": {
+      "lineWidth": 1,
+      "fillOpacity": 60,
+      "showPoints": "never",
+      "spanNulls": 60000,
+      "gradientMode": "none",
+      "stacking": {
+       "mode": "normal",
+       "group": "A"
+      },
+      "axisSoftMin": 0,
+      "insertNulls": false
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "right",
+     "calcs": [
+      "mean",
+      "max"
+     ],
+     "showLegend": true,
+     "sortBy": "Mean",
+     "sortDesc": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "id": 12,
+   "gridPos": {
+    "x": 12,
+    "y": 36,
+    "w": 12,
+    "h": 9
+   }
+  },
+  {
+   "type": "row",
+   "title": "GPUs right now",
+   "id": 13,
+   "collapsed": false,
+   "gridPos": {
+    "x": 0,
+    "y": 45,
+    "w": 24,
+    "h": 1
+   },
+   "panels": []
+  },
+  {
+   "type": "table",
+   "title": "GPU processes",
+   "description": "Every process tree holding GPU memory, one row per GPU. GPU-idle for = how long it has held VRAM with <1% SM.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sum without() (servmon_job_gpu_mem_bytes{host=~\"$host\",user=~\"$user\"})",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "B",
+     "expr": "sum without() (servmon_job_gpu_sm_percent{host=~\"$host\",user=~\"$user\"})",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "C",
+     "expr": "(servmon_job_gpu_mem_bytes{host=~\"$host\",user=~\"$user\"} * 0) + on(host,user,pid,kind,cmd,container) group_left servmon_job_gpu_idle_seconds",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "D",
+     "expr": "(servmon_job_gpu_mem_bytes{host=~\"$host\",user=~\"$user\"} * 0) + on(host,user,pid,kind,cmd,container) group_left servmon_job_cpu_cores",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    }
+   ],
+   "transformations": [
+    {
+     "id": "merge",
+     "options": {}
+    },
+    {
+     "id": "organize",
+     "options": {
+      "excludeByName": {
+       "Time": true,
+       "container": false
+      },
+      "renameByName": {
+       "Value #A": "VRAM",
+       "Value #B": "SM %",
+       "Value #C": "GPU-idle for",
+       "Value #D": "CPU cores"
+      },
+      "indexByName": {
+       "host": 0,
+       "user": 1,
+       "kind": 2,
+       "pid": 3,
+       "gpu": 4,
+       "cmd": 5,
+       "VRAM": 6,
+       "SM %": 7,
+       "GPU-idle for": 8,
+       "CPU cores": 9
+      }
+     }
+    },
+    {
+     "id": "sortBy",
+     "options": {
+      "sort": [
+       {
+        "field": "VRAM",
+        "desc": true
+       }
+      ]
+     }
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "filterable": true,
+      "align": "auto",
+      "cellOptions": {
+       "type": "auto"
+      }
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "VRAM"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "bytes"
+       },
+       {
+        "id": "custom.cellOptions",
+        "value": {
+         "type": "gauge",
+         "mode": "basic",
+         "valueDisplayMode": "text"
+        }
+       },
+       {
+        "id": "max",
+        "value": 103079215104
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "SM %"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "percent"
+       },
+       {
+        "id": "custom.cellOptions",
+        "value": {
+         "type": "gauge",
+         "mode": "basic",
+         "valueDisplayMode": "text"
+        }
+       },
+       {
+        "id": "min",
+        "value": 0
+       },
+       {
+        "id": "max",
+        "value": 100
+       },
+       {
+        "id": "decimals",
+        "value": 0
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "GPU-idle for"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "s"
+       },
+       {
+        "id": "custom.cellOptions",
+        "value": {
+         "type": "color-text"
+        }
+       },
+       {
+        "id": "thresholds",
+        "value": {
+         "mode": "absolute",
+         "steps": [
+          {
+           "color": "text",
+           "value": null
+          },
+          {
+           "color": "orange",
+           "value": 600
+          },
+          {
+           "color": "red",
+           "value": 3600
+          }
+         ]
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "CPU cores"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "short"
+       },
+       {
+        "id": "decimals",
+        "value": 2
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "cmd"
+      },
+      "properties": [
+       {
+        "id": "custom.width",
+        "value": 520
+       },
+       {
+        "id": "custom.inspect",
+        "value": true
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "user"
+      },
+      "properties": [
+       {
+        "id": "links",
+        "value": [
+         {
+          "title": "Usage of ${__value.raw}",
+          "url": "/d/servmon-accounting/usage-accounting?var-user=${__value.raw}&${host:queryparam}&${__url_time_range}"
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "showHeader": true,
+    "cellHeight": "sm",
+    "footer": {
+     "show": false
+    }
+   },
+   "id": 14,
+   "gridPos": {
+    "x": 0,
+    "y": 46,
+    "w": 24,
+    "h": 9
+   }
+  },
+  {
+   "type": "bargauge",
+   "title": "VRAM per GPU by user (now)",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sort_desc(sum by(host,gpu,user) (servmon_user_gpu_mem_bytes{host=~\"$host\",user=~\"$user\"}) > 0)",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "{{host}} gpu{{gpu}} · {{user}}",
+     "instant": true,
+     "range": false
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "bytes",
+     "min": 0,
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "blue"
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "orientation": "horizontal",
+    "displayMode": "basic",
+    "showUnfilled": true,
+    "valueMode": "text",
+    "namePlacement": "left",
+    "sizing": "manual",
+    "text": {
+     "titleSize": 12,
+     "valueSize": 14
+    },
+    "minVizHeight": 16,
+    "maxVizHeight": 24,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "values": false,
+     "fields": ""
+    }
+   },
+   "id": 15,
+   "gridPos": {
+    "x": 0,
+    "y": 55,
+    "w": 12,
+    "h": 9
+   }
+  },
+  {
+   "type": "bargauge",
+   "title": "SM utilisation per GPU by user (now)",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sort_desc(sum by(host,gpu,user) (servmon_user_gpu_sm_percent{host=~\"$host\",user=~\"$user\"}) > 0)",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "{{host}} gpu{{gpu}} · {{user}}",
+     "instant": true,
+     "range": false
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percent",
+     "min": 0,
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "green"
+     },
+     "max": 100
+    },
+    "overrides": []
+   },
+   "options": {
+    "orientation": "horizontal",
+    "displayMode": "basic",
+    "showUnfilled": true,
+    "valueMode": "text",
+    "namePlacement": "left",
+    "sizing": "manual",
+    "text": {
+     "titleSize": 12,
+     "valueSize": 14
+    },
+    "minVizHeight": 16,
+    "maxVizHeight": 24,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "values": false,
+     "fields": ""
+    }
+   },
+   "id": 16,
+   "gridPos": {
+    "x": 12,
+    "y": 55,
+    "w": 12,
+    "h": 9
+   }
+  },
+  {
+   "type": "row",
+   "title": "Top jobs right now",
+   "id": 17,
+   "collapsed": false,
+   "gridPos": {
+    "x": 0,
+    "y": 64,
+    "w": 24,
+    "h": 1
+   },
+   "panels": []
+  },
+  {
+   "type": "table",
+   "title": "Jobs (process trees) by resource",
+   "description": "A job = a process plus all its descendants of the same user, rooted at the first process below a shell/tmux/IDE. Only jobs using >=0.1 core, >=512MiB RAM or any VRAM are listed.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sum without() (servmon_job_cpu_cores{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"})",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "B",
+     "expr": "sum without() (servmon_job_mem_bytes{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"})",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "C",
+     "expr": "sum without(gpu) (servmon_job_gpu_mem_bytes{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"})",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "D",
+     "expr": "sum without(gpu) (servmon_job_gpu_sm_percent{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"})",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "E",
+     "expr": "sum without() (servmon_job_procs{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"})",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "F",
+     "expr": "time() - servmon_job_start_time_seconds{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"}",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "G",
+     "expr": "sum without() (servmon_job_gpu_idle_seconds{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"} > 0)",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "H",
+     "expr": "sum without() (servmon_job_cpu_idle_seconds{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"} > 0)",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    }
+   ],
+   "transformations": [
+    {
+     "id": "merge",
+     "options": {}
+    },
+    {
+     "id": "organize",
+     "options": {
+      "excludeByName": {
+       "Time": true,
+       "container": false
+      },
+      "renameByName": {
+       "Value #A": "CPU cores",
+       "Value #B": "RAM",
+       "Value #C": "VRAM",
+       "Value #D": "SM %",
+       "Value #E": "procs",
+       "Value #F": "running for",
+       "Value #G": "GPU-idle for",
+       "Value #H": "fully idle for"
+      },
+      "indexByName": {
+       "host": 0,
+       "user": 1,
+       "kind": 2,
+       "pid": 3,
+       "gpu": 4,
+       "cmd": 5,
+       "CPU cores": 6,
+       "RAM": 7,
+       "VRAM": 8,
+       "SM %": 9,
+       "procs": 10,
+       "running for": 11,
+       "GPU-idle for": 12,
+       "fully idle for": 13
+      }
+     }
+    },
+    {
+     "id": "sortBy",
+     "options": {
+      "sort": [
+       {
+        "field": "RAM",
+        "desc": true
+       }
+      ]
+     }
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "filterable": true,
+      "align": "auto",
+      "cellOptions": {
+       "type": "auto"
+      }
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "CPU cores"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "short"
+       },
+       {
+        "id": "decimals",
+        "value": 2
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "RAM"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "bytes"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "VRAM"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "bytes"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "SM %"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "percent"
+       },
+       {
+        "id": "decimals",
+        "value": 0
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "procs"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "short"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "running for"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "s"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "GPU-idle for"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "s"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "fully idle for"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "s"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "cmd"
+      },
+      "properties": [
+       {
+        "id": "custom.width",
+        "value": 520
+       },
+       {
+        "id": "custom.inspect",
+        "value": true
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "user"
+      },
+      "properties": [
+       {
+        "id": "links",
+        "value": [
+         {
+          "title": "Usage of ${__value.raw}",
+          "url": "/d/servmon-accounting/usage-accounting?var-user=${__value.raw}&${host:queryparam}&${__url_time_range}"
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "showHeader": true,
+    "cellHeight": "sm",
+    "footer": {
+     "show": false
+    }
+   },
+   "id": 18,
+   "gridPos": {
+    "x": 0,
+    "y": 65,
+    "w": 24,
+    "h": 14
+   }
+  }
+ ]
+}

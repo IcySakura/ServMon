@@ -1,0 +1,11 @@
+apiVersion: 1
+datasources:
+  - name: Prometheus
+    uid: servmon-prom
+    type: prometheus
+    access: proxy
+    url: $PROM_URL            # set by scripts/run-grafana.sh or compose.yaml
+    isDefault: true
+    jsonData:
+      timeInterval: 15s
+      httpMethod: POST

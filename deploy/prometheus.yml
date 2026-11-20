@@ -1,0 +1,13 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: servmon
+    honor_labels: true
+    static_configs:
+      - targets: ["127.0.0.1:9877"]
+    # single target: these labels only get in the way of joins in the dashboards
+    metric_relabel_configs:
+      - action: labeldrop
+        regex: instance|job

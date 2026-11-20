@@ -1,0 +1,879 @@
+{
+ "uid": "servmon-server",
+ "title": "Servers · Server detail",
+ "description": "Hardware-level metrics per server",
+ "tags": [
+  "servmon"
+ ],
+ "timezone": "browser",
+ "editable": true,
+ "graphTooltip": 1,
+ "schemaVersion": 39,
+ "version": 1,
+ "time": {
+  "from": "now-6h",
+  "to": "now"
+ },
+ "refresh": "15s",
+ "timepicker": {
+  "refresh_intervals": [
+   "5s",
+   "15s",
+   "30s",
+   "1m",
+   "5m",
+   "15m",
+   "1h"
+  ]
+ },
+ "templating": {
+  "list": [
+   {
+    "name": "host",
+    "label": "host",
+    "type": "query",
+    "datasource": {
+     "type": "prometheus",
+     "uid": "servmon-prom"
+    },
+    "query": {
+     "query": "label_values(servmon_up, host)",
+     "refId": "v",
+     "qryType": 1
+    },
+    "definition": "label_values(servmon_up, host)",
+    "refresh": 2,
+    "sort": 1,
+    "multi": true,
+    "includeAll": true,
+    "allValue": ".*",
+    "current": {
+     "selected": true,
+     "text": [
+      "All"
+     ],
+     "value": [
+      "$__all"
+     ]
+    }
+   }
+  ]
+ },
+ "annotations": {
+  "list": []
+ },
+ "links": [
+  {
+   "type": "dashboards",
+   "tags": [
+    "servmon"
+   ],
+   "asDropdown": false,
+   "includeVars": true,
+   "keepTime": true,
+   "title": "servmon"
+  }
+ ],
+ "panels": [
+  {
+   "type": "timeseries",
+   "title": "CPU",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "100 * servmon_host_cpu_busy_ratio{host=~\"$host\"}",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "{{host}} busy"
+    },
+    {
+     "refId": "B",
+     "expr": "100 * servmon_host_cpu_iowait_ratio{host=~\"$host\"}",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "{{host}} iowait"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percent",
+     "custom": {
+      "lineWidth": 2,
+      "fillOpacity": 8,
+      "showPoints": "never",
+      "spanNulls": 60000,
+      "gradientMode": "none",
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisSoftMin": 0,
+      "insertNulls": false
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "right",
+     "calcs": [
+      "mean",
+      "max"
+     ],
+     "showLegend": true,
+     "sortBy": "Mean",
+     "sortDesc": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "id": 1,
+   "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 12,
+    "h": 8
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Load average (per core)",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "servmon_host_load1{host=~\"$host\"} / servmon_host_ncpu",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "{{host}}"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percentunit",
+     "custom": {
+      "lineWidth": 2,
+      "fillOpacity": 8,
+      "showPoints": "never",
+      "spanNulls": 60000,
+      "gradientMode": "none",
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisSoftMin": 0,
+      "insertNulls": false
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "right",
+     "calcs": [
+      "mean",
+      "max"
+     ],
+     "showLegend": true,
+     "sortBy": "Mean",
+     "sortDesc": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "id": 2,
+   "gridPos": {
+    "x": 12,
+    "y": 0,
+    "w": 12,
+    "h": 8
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Memory",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "servmon_host_mem_used_bytes{host=~\"$host\"}",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "{{host}} used"
+    },
+    {
+     "refId": "B",
+     "expr": "servmon_host_mem_shmem_bytes{host=~\"$host\"}",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "{{host}} of which shmem/tmpfs"
+    },
+    {
+     "refId": "C",
+     "expr": "servmon_host_swap_used_bytes{host=~\"$host\"}",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "{{host}} swap used"
+    },
+    {
+     "refId": "D",
+     "expr": "servmon_host_mem_total_bytes{host=~\"$host\"}",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "{{host}} total"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "bytes",
+     "custom": {
+      "lineWidth": 2,
+      "fillOpacity": 8,
+      "showPoints": "never",
+      "spanNulls": 60000,
+      "gradientMode": "none",
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisSoftMin": 0,
+      "insertNulls": false
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "right",
+     "calcs": [
+      "mean",
+      "max"
+     ],
+     "showLegend": true,
+     "sortBy": "Mean",
+     "sortDesc": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "id": 3,
+   "gridPos": {
+    "x": 0,
+    "y": 8,
+    "w": 12,
+    "h": 8
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Disk used",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "100 * servmon_disk_used_bytes{host=~\"$host\"} / servmon_disk_total_bytes",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "{{host}} {{mount}}"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percent",
+     "custom": {
+      "lineWidth": 2,
+      "fillOpacity": 8,
+      "showPoints": "never",
+      "spanNulls": 60000,
+      "gradientMode": "none",
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisSoftMin": 0,
+      "insertNulls": false
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "right",
+     "calcs": [
+      "lastNotNull"
+     ],
+     "showLegend": true,
+     "sortBy": null,
+     "sortDesc": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "id": 4,
+   "gridPos": {
+    "x": 12,
+    "y": 8,
+    "w": 12,
+    "h": 8
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "GPU utilisation",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "servmon_gpu_util_percent{host=~\"$host\"}",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "{{host}} gpu{{gpu}}"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percent",
+     "custom": {
+      "lineWidth": 2,
+      "fillOpacity": 8,
+      "showPoints": "never",
+      "spanNulls": 60000,
+      "gradientMode": "none",
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisSoftMin": 0,
+      "insertNulls": false
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "right",
+     "calcs": [
+      "mean",
+      "max"
+     ],
+     "showLegend": true,
+     "sortBy": "Mean",
+     "sortDesc": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "id": 5,
+   "gridPos": {
+    "x": 0,
+    "y": 16,
+    "w": 8,
+    "h": 8
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "GPU memory-controller utilisation",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "servmon_gpu_mem_util_percent{host=~\"$host\"}",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "{{host}} gpu{{gpu}}"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percent",
+     "custom": {
+      "lineWidth": 2,
+      "fillOpacity": 8,
+      "showPoints": "never",
+      "spanNulls": 60000,
+      "gradientMode": "none",
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisSoftMin": 0,
+      "insertNulls": false
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "right",
+     "calcs": [
+      "mean",
+      "max"
+     ],
+     "showLegend": true,
+     "sortBy": "Mean",
+     "sortDesc": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "id": 6,
+   "gridPos": {
+    "x": 8,
+    "y": 16,
+    "w": 8,
+    "h": 8
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "VRAM used",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "servmon_gpu_mem_used_bytes{host=~\"$host\"}",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "{{host}} gpu{{gpu}}"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "bytes",
+     "custom": {
+      "lineWidth": 2,
+      "fillOpacity": 8,
+      "showPoints": "never",
+      "spanNulls": 60000,
+      "gradientMode": "none",
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisSoftMin": 0,
+      "insertNulls": false
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "right",
+     "calcs": [
+      "mean",
+      "max"
+     ],
+     "showLegend": true,
+     "sortBy": "Mean",
+     "sortDesc": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "id": 7,
+   "gridPos": {
+    "x": 16,
+    "y": 16,
+    "w": 8,
+    "h": 8
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "GPU power",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "servmon_gpu_power_watts{host=~\"$host\"}",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "{{host}} gpu{{gpu}}"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "watt",
+     "custom": {
+      "lineWidth": 2,
+      "fillOpacity": 8,
+      "showPoints": "never",
+      "spanNulls": 60000,
+      "gradientMode": "none",
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisSoftMin": 0,
+      "insertNulls": false
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "right",
+     "calcs": [
+      "mean",
+      "max"
+     ],
+     "showLegend": true,
+     "sortBy": "Mean",
+     "sortDesc": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "id": 8,
+   "gridPos": {
+    "x": 0,
+    "y": 24,
+    "w": 8,
+    "h": 8
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "GPU temperature",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "servmon_gpu_temp_celsius{host=~\"$host\"}",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "{{host}} gpu{{gpu}}"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "celsius",
+     "custom": {
+      "lineWidth": 2,
+      "fillOpacity": 8,
+      "showPoints": "never",
+      "spanNulls": 60000,
+      "gradientMode": "none",
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisSoftMin": null,
+      "insertNulls": false
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "right",
+     "calcs": [
+      "mean",
+      "max"
+     ],
+     "showLegend": true,
+     "sortBy": "Mean",
+     "sortDesc": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "id": 9,
+   "gridPos": {
+    "x": 8,
+    "y": 24,
+    "w": 8,
+    "h": 8
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Logged-in sessions by user",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sum by(user) (servmon_user_sessions{host=~\"$host\"}) > 0",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "{{user}}"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short",
+     "custom": {
+      "lineWidth": 1,
+      "fillOpacity": 60,
+      "showPoints": "never",
+      "spanNulls": 60000,
+      "gradientMode": "none",
+      "stacking": {
+       "mode": "normal",
+       "group": "A"
+      },
+      "axisSoftMin": 0,
+      "insertNulls": false
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "right",
+     "calcs": [
+      "mean",
+      "max"
+     ],
+     "showLegend": true,
+     "sortBy": "Mean",
+     "sortDesc": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "id": 10,
+   "gridPos": {
+    "x": 16,
+    "y": 24,
+    "w": 8,
+    "h": 8
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Collector: snapshot age / scan time",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "servmon_snapshot_age_seconds{host=~\"$host\"}",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "{{host}} age"
+    },
+    {
+     "refId": "B",
+     "expr": "servmon_scan_seconds{host=~\"$host\"}",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "{{host}} scan"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "s",
+     "custom": {
+      "lineWidth": 2,
+      "fillOpacity": 8,
+      "showPoints": "never",
+      "spanNulls": 60000,
+      "gradientMode": "none",
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisSoftMin": 0,
+      "insertNulls": false
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "right",
+     "calcs": [
+      "mean",
+      "max"
+     ],
+     "showLegend": true,
+     "sortBy": "Mean",
+     "sortDesc": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "id": 11,
+   "gridPos": {
+    "x": 0,
+    "y": 32,
+    "w": 12,
+    "h": 7
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Processes",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "servmon_host_procs{host=~\"$host\"}",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "{{host}}"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short",
+     "custom": {
+      "lineWidth": 2,
+      "fillOpacity": 8,
+      "showPoints": "never",
+      "spanNulls": 60000,
+      "gradientMode": "none",
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisSoftMin": 0,
+      "insertNulls": false
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "right",
+     "calcs": [
+      "mean",
+      "max"
+     ],
+     "showLegend": true,
+     "sortBy": "Mean",
+     "sortDesc": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "id": 12,
+   "gridPos": {
+    "x": 12,
+    "y": 32,
+    "w": 12,
+    "h": 7
+   }
+  }
+ ]
+}

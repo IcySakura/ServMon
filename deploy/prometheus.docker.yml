@@ -1,0 +1,13 @@
+# Same as prometheus.yml, but scrapes the collector container by its service name.
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  - job_name: servmon
+    honor_labels: true
+    static_configs:
+      - targets: ["collector:9877"]
+    metric_relabel_configs:
+      - action: labeldrop
+        regex: instance|job

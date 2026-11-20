@@ -1,0 +1,11 @@
+# runtime data (Prometheus TSDB, Grafana DB, raw archive with other users' command lines)
+/data/
+# downloaded binaries for the native deployment (scripts/fetch-vendor.sh)
+/vendor/
+# local settings and secrets (tunnel token, passwords)
+.env
+deploy/grafana/grafana.env
+/ssh/
+__pycache__/
+*.pyc
+/.claude/

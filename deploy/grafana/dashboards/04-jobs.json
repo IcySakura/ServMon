@@ -1,0 +1,742 @@
+{
+ "uid": "servmon-jobs",
+ "title": "Servers · Job explorer",
+ "description": "Follow individual jobs / programs over time",
+ "tags": [
+  "servmon"
+ ],
+ "timezone": "browser",
+ "editable": true,
+ "graphTooltip": 1,
+ "schemaVersion": 39,
+ "version": 1,
+ "time": {
+  "from": "now-24h",
+  "to": "now"
+ },
+ "refresh": "30s",
+ "timepicker": {
+  "refresh_intervals": [
+   "5s",
+   "15s",
+   "30s",
+   "1m",
+   "5m",
+   "15m",
+   "1h"
+  ]
+ },
+ "templating": {
+  "list": [
+   {
+    "name": "host",
+    "label": "host",
+    "type": "query",
+    "datasource": {
+     "type": "prometheus",
+     "uid": "servmon-prom"
+    },
+    "query": {
+     "query": "label_values(servmon_up, host)",
+     "refId": "v",
+     "qryType": 1
+    },
+    "definition": "label_values(servmon_up, host)",
+    "refresh": 2,
+    "sort": 1,
+    "multi": true,
+    "includeAll": true,
+    "allValue": ".*",
+    "current": {
+     "selected": true,
+     "text": [
+      "All"
+     ],
+     "value": [
+      "$__all"
+     ]
+    }
+   },
+   {
+    "name": "user",
+    "label": "user",
+    "type": "query",
+    "datasource": {
+     "type": "prometheus",
+     "uid": "servmon-prom"
+    },
+    "query": {
+     "query": "label_values(servmon_user_cpu_cores{host=~\"$host\"}, user)",
+     "refId": "v",
+     "qryType": 1
+    },
+    "definition": "label_values(servmon_user_cpu_cores{host=~\"$host\"}, user)",
+    "refresh": 2,
+    "sort": 1,
+    "multi": true,
+    "includeAll": true,
+    "allValue": ".*",
+    "current": {
+     "selected": true,
+     "text": [
+      "All"
+     ],
+     "value": [
+      "$__all"
+     ]
+    }
+   },
+   {
+    "name": "kind",
+    "label": "workload",
+    "type": "query",
+    "datasource": {
+     "type": "prometheus",
+     "uid": "servmon-prom"
+    },
+    "query": {
+     "query": "label_values(servmon_job_cpu_cores{host=~\"$host\"}, kind)",
+     "refId": "v",
+     "qryType": 1
+    },
+    "definition": "label_values(servmon_job_cpu_cores{host=~\"$host\"}, kind)",
+    "refresh": 2,
+    "sort": 1,
+    "multi": true,
+    "includeAll": true,
+    "allValue": ".*",
+    "current": {
+     "selected": true,
+     "text": [
+      "All"
+     ],
+     "value": [
+      "$__all"
+     ]
+    }
+   },
+   {
+    "name": "cmd",
+    "label": "command regex",
+    "type": "textbox",
+    "query": ".*",
+    "current": {
+     "text": ".*",
+     "value": ".*"
+    }
+   },
+   {
+    "name": "top",
+    "label": "top N",
+    "type": "custom",
+    "query": "5 : 5,10 : 10,20 : 20,50 : 50",
+    "options": [
+     {
+      "text": "5",
+      "value": "5",
+      "selected": false
+     },
+     {
+      "text": "10",
+      "value": "10",
+      "selected": true
+     },
+     {
+      "text": "20",
+      "value": "20",
+      "selected": false
+     },
+     {
+      "text": "50",
+      "value": "50",
+      "selected": false
+     }
+    ],
+    "current": {
+     "text": "10",
+     "value": "10"
+    },
+    "multi": false,
+    "includeAll": false
+   },
+   {
+    "name": "step",
+    "type": "constant",
+    "query": "15",
+    "hide": 2,
+    "description": "collector interval in seconds (must match config.toml)"
+   }
+  ]
+ },
+ "annotations": {
+  "list": []
+ },
+ "links": [
+  {
+   "type": "dashboards",
+   "tags": [
+    "servmon"
+   ],
+   "asDropdown": false,
+   "includeVars": true,
+   "keepTime": true,
+   "title": "servmon"
+  }
+ ],
+ "panels": [
+  {
+   "type": "timeseries",
+   "title": "CPU cores per job",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "topk($top, servmon_job_cpu_cores{host=~\"$host\",user=~\"$user\",kind=~\"$kind\",cmd=~\"$cmd\"})",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "{{host}} {{user}} {{pid}} {{cmd}}"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "short",
+     "custom": {
+      "lineWidth": 2,
+      "fillOpacity": 8,
+      "showPoints": "never",
+      "spanNulls": 60000,
+      "gradientMode": "none",
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisSoftMin": 0,
+      "insertNulls": false
+     },
+     "decimals": 2
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "bottom",
+     "calcs": [
+      "mean",
+      "max"
+     ],
+     "showLegend": true,
+     "sortBy": "Mean",
+     "sortDesc": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "id": 1,
+   "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 12,
+    "h": 15
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "RAM per job",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "topk($top, servmon_job_mem_bytes{host=~\"$host\",user=~\"$user\",kind=~\"$kind\",cmd=~\"$cmd\"})",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "{{host}} {{user}} {{pid}} {{cmd}}"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "bytes",
+     "custom": {
+      "lineWidth": 2,
+      "fillOpacity": 8,
+      "showPoints": "never",
+      "spanNulls": 60000,
+      "gradientMode": "none",
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisSoftMin": 0,
+      "insertNulls": false
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "bottom",
+     "calcs": [
+      "mean",
+      "max"
+     ],
+     "showLegend": true,
+     "sortBy": "Mean",
+     "sortDesc": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "id": 2,
+   "gridPos": {
+    "x": 12,
+    "y": 0,
+    "w": 12,
+    "h": 15
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "VRAM per job",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "topk($top, sum without(gpu) (servmon_job_gpu_mem_bytes{host=~\"$host\",user=~\"$user\",kind=~\"$kind\",cmd=~\"$cmd\"}))",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "{{host}} {{user}} {{pid}} {{cmd}}"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "bytes",
+     "custom": {
+      "lineWidth": 2,
+      "fillOpacity": 8,
+      "showPoints": "never",
+      "spanNulls": 60000,
+      "gradientMode": "none",
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisSoftMin": 0,
+      "insertNulls": false
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "bottom",
+     "calcs": [
+      "mean",
+      "max"
+     ],
+     "showLegend": true,
+     "sortBy": "Mean",
+     "sortDesc": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "id": 3,
+   "gridPos": {
+    "x": 0,
+    "y": 15,
+    "w": 12,
+    "h": 15
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "SM % per job",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "topk($top, sum without(gpu) (servmon_job_gpu_sm_percent{host=~\"$host\",user=~\"$user\",kind=~\"$kind\",cmd=~\"$cmd\"}))",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "{{host}} {{user}} {{pid}} {{cmd}}"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "percent",
+     "custom": {
+      "lineWidth": 2,
+      "fillOpacity": 8,
+      "showPoints": "never",
+      "spanNulls": 60000,
+      "gradientMode": "none",
+      "stacking": {
+       "mode": "none",
+       "group": "A"
+      },
+      "axisSoftMin": 0,
+      "insertNulls": false
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "bottom",
+     "calcs": [
+      "mean",
+      "max"
+     ],
+     "showLegend": true,
+     "sortBy": "Mean",
+     "sortDesc": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "id": 4,
+   "gridPos": {
+    "x": 12,
+    "y": 15,
+    "w": 12,
+    "h": 15
+   }
+  },
+  {
+   "type": "table",
+   "title": "Matching jobs in the period",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sum by(host,user,pid,kind,cmd,container) (sum_over_time(servmon_job_cpu_cores{host=~\"$host\",user=~\"$user\",kind=~\"$kind\",cmd=~\"$cmd\"}[$__range])) * $step / 3600",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "B",
+     "expr": "max by(host,user,pid,kind,cmd,container) (max_over_time(servmon_job_mem_bytes{host=~\"$host\",user=~\"$user\",kind=~\"$kind\",cmd=~\"$cmd\"}[$__range]))",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "C",
+     "expr": "sum by(host,user,pid,kind,cmd,container) (sum_over_time(servmon_job_gpu_sm_percent{host=~\"$host\",user=~\"$user\",kind=~\"$kind\",cmd=~\"$cmd\"}[$__range])) * $step / 3600 / 100",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "D",
+     "expr": "max by(host,user,pid,kind,cmd,container) (max_over_time(sum without(gpu) (servmon_job_gpu_mem_bytes{host=~\"$host\",user=~\"$user\",kind=~\"$kind\",cmd=~\"$cmd\"})[$__range:]))",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "E",
+     "expr": "sum by(host,user,pid,kind,cmd,container) (sum_over_time(servmon_job_idle_gpu_mem_bytes{host=~\"$host\",user=~\"$user\",kind=~\"$kind\",cmd=~\"$cmd\"}[$__range])) * $step / 3600 / 2^30",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "F",
+     "expr": "min by(host,user,pid,kind,cmd,container) (min_over_time(timestamp(servmon_job_cpu_cores{host=~\"$host\",user=~\"$user\",kind=~\"$kind\",cmd=~\"$cmd\"})[$__range:])) * 1000",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "G",
+     "expr": "max by(host,user,pid,kind,cmd,container) (max_over_time(timestamp(servmon_job_cpu_cores{host=~\"$host\",user=~\"$user\",kind=~\"$kind\",cmd=~\"$cmd\"})[$__range:])) * 1000",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    }
+   ],
+   "transformations": [
+    {
+     "id": "merge",
+     "options": {}
+    },
+    {
+     "id": "organize",
+     "options": {
+      "excludeByName": {
+       "Time": true,
+       "container": false
+      },
+      "renameByName": {
+       "Value #A": "CPU core-h",
+       "Value #B": "peak RAM",
+       "Value #C": "GPU compute-h",
+       "Value #D": "peak VRAM",
+       "Value #E": "idle VRAM GiB-h",
+       "Value #F": "first seen",
+       "Value #G": "last seen"
+      },
+      "indexByName": {
+       "host": 0,
+       "user": 1,
+       "kind": 2,
+       "pid": 3,
+       "gpu": 4,
+       "cmd": 5,
+       "CPU core-h": 6,
+       "peak RAM": 7,
+       "GPU compute-h": 8,
+       "peak VRAM": 9,
+       "idle VRAM GiB-h": 10,
+       "first seen": 11,
+       "last seen": 12
+      }
+     }
+    },
+    {
+     "id": "sortBy",
+     "options": {
+      "sort": [
+       {
+        "field": "CPU core-h",
+        "desc": true
+       }
+      ]
+     }
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "filterable": true,
+      "align": "auto",
+      "cellOptions": {
+       "type": "auto"
+      }
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "CPU core-h"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "suffix: h"
+       },
+       {
+        "id": "decimals",
+        "value": 2
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "peak RAM"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "bytes"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "GPU compute-h"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "suffix: h"
+       },
+       {
+        "id": "decimals",
+        "value": 2
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "peak VRAM"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "bytes"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "idle VRAM GiB-h"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "suffix: GiB·h"
+       },
+       {
+        "id": "decimals",
+        "value": 1
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "first seen"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "dateTimeAsLocal"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "last seen"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "dateTimeAsLocal"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "cmd"
+      },
+      "properties": [
+       {
+        "id": "custom.width",
+        "value": 520
+       },
+       {
+        "id": "custom.inspect",
+        "value": true
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "user"
+      },
+      "properties": [
+       {
+        "id": "links",
+        "value": [
+         {
+          "title": "Usage of ${__value.raw}",
+          "url": "/d/servmon-accounting/usage-accounting?var-user=${__value.raw}&${host:queryparam}&${__url_time_range}"
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "showHeader": true,
+    "cellHeight": "sm",
+    "footer": {
+     "show": false
+    }
+   },
+   "id": 5,
+   "gridPos": {
+    "x": 0,
+    "y": 30,
+    "w": 24,
+    "h": 16
+   }
+  }
+ ]
+}

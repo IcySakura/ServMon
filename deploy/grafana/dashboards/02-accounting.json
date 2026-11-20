@@ -1,0 +1,3219 @@
+{
+ "uid": "servmon-accounting",
+ "title": "Servers · Usage accounting",
+ "description": "Who used how much, over any time range",
+ "tags": [
+  "servmon"
+ ],
+ "timezone": "browser",
+ "editable": true,
+ "graphTooltip": 1,
+ "schemaVersion": 39,
+ "version": 1,
+ "time": {
+  "from": "now-7d",
+  "to": "now"
+ },
+ "refresh": "",
+ "timepicker": {
+  "refresh_intervals": [
+   "5s",
+   "15s",
+   "30s",
+   "1m",
+   "5m",
+   "15m",
+   "1h"
+  ]
+ },
+ "templating": {
+  "list": [
+   {
+    "name": "host",
+    "label": "host",
+    "type": "query",
+    "datasource": {
+     "type": "prometheus",
+     "uid": "servmon-prom"
+    },
+    "query": {
+     "query": "label_values(servmon_up, host)",
+     "refId": "v",
+     "qryType": 1
+    },
+    "definition": "label_values(servmon_up, host)",
+    "refresh": 2,
+    "sort": 1,
+    "multi": true,
+    "includeAll": true,
+    "allValue": ".*",
+    "current": {
+     "selected": true,
+     "text": [
+      "All"
+     ],
+     "value": [
+      "$__all"
+     ]
+    }
+   },
+   {
+    "name": "user",
+    "label": "user",
+    "type": "query",
+    "datasource": {
+     "type": "prometheus",
+     "uid": "servmon-prom"
+    },
+    "query": {
+     "query": "label_values(servmon_user_cpu_cores{host=~\"$host\"}, user)",
+     "refId": "v",
+     "qryType": 1
+    },
+    "definition": "label_values(servmon_user_cpu_cores{host=~\"$host\"}, user)",
+    "refresh": 2,
+    "sort": 1,
+    "multi": true,
+    "includeAll": true,
+    "allValue": ".*",
+    "current": {
+     "selected": true,
+     "text": [
+      "All"
+     ],
+     "value": [
+      "$__all"
+     ]
+    }
+   },
+   {
+    "name": "kind",
+    "label": "workload",
+    "type": "query",
+    "datasource": {
+     "type": "prometheus",
+     "uid": "servmon-prom"
+    },
+    "query": {
+     "query": "label_values(servmon_job_cpu_cores{host=~\"$host\"}, kind)",
+     "refId": "v",
+     "qryType": 1
+    },
+    "definition": "label_values(servmon_job_cpu_cores{host=~\"$host\"}, kind)",
+    "refresh": 2,
+    "sort": 1,
+    "multi": true,
+    "includeAll": true,
+    "allValue": ".*",
+    "current": {
+     "selected": true,
+     "text": [
+      "All"
+     ],
+     "value": [
+      "$__all"
+     ]
+    }
+   },
+   {
+    "name": "step",
+    "type": "constant",
+    "query": "15",
+    "hide": 2,
+    "description": "collector interval in seconds (must match config.toml)"
+   }
+  ]
+ },
+ "annotations": {
+  "list": []
+ },
+ "links": [
+  {
+   "type": "dashboards",
+   "tags": [
+    "servmon"
+   ],
+   "asDropdown": false,
+   "includeVars": true,
+   "keepTime": true,
+   "title": "servmon"
+  }
+ ],
+ "panels": [
+  {
+   "type": "row",
+   "title": "Totals for the selected period",
+   "id": 1,
+   "collapsed": false,
+   "gridPos": {
+    "x": 0,
+    "y": 0,
+    "w": 24,
+    "h": 1
+   },
+   "panels": []
+  },
+  {
+   "type": "stat",
+   "title": "CPU core-hours",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sum(sum_over_time(servmon_user_cpu_cores{host=~\"$host\",user=~\"$user\"}[$__range])) * $step / 3600",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "suffix: h",
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "values": false,
+     "fields": ""
+    },
+    "colorMode": "value",
+    "graphMode": "none",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto"
+   },
+   "id": 2,
+   "gridPos": {
+    "x": 0,
+    "y": 1,
+    "w": 4,
+    "h": 4
+   }
+  },
+  {
+   "type": "stat",
+   "title": "GPU compute-hours",
+   "description": "SM-utilisation-weighted: 1 h of one GPU at 100% = 1 GPU-hour.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sum(sum_over_time(servmon_user_gpu_sm_percent{host=~\"$host\",user=~\"$user\"}[$__range])) / 100 * $step / 3600",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "suffix: h",
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "values": false,
+     "fields": ""
+    },
+    "colorMode": "value",
+    "graphMode": "none",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto"
+   },
+   "id": 3,
+   "gridPos": {
+    "x": 4,
+    "y": 1,
+    "w": 4,
+    "h": 4
+   }
+  },
+  {
+   "type": "stat",
+   "title": "VRAM held",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sum(sum_over_time(servmon_user_gpu_mem_bytes{host=~\"$host\",user=~\"$user\"}[$__range])) * $step / 3600 / 2^30",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "suffix: GiB·h",
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "values": false,
+     "fields": ""
+    },
+    "colorMode": "value",
+    "graphMode": "none",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto"
+   },
+   "id": 4,
+   "gridPos": {
+    "x": 8,
+    "y": 1,
+    "w": 4,
+    "h": 4
+   }
+  },
+  {
+   "type": "stat",
+   "title": "…of which idle",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sum(sum_over_time(servmon_user_idle_gpu_mem_bytes{host=~\"$host\",user=~\"$user\"}[$__range])) * $step / 3600 / 2^30",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "suffix: GiB·h",
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       },
+       {
+        "color": "orange",
+        "value": 100
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "values": false,
+     "fields": ""
+    },
+    "colorMode": "value",
+    "graphMode": "none",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto"
+   },
+   "id": 5,
+   "gridPos": {
+    "x": 12,
+    "y": 1,
+    "w": 4,
+    "h": 4
+   }
+  },
+  {
+   "type": "stat",
+   "title": "RAM held",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sum(sum_over_time(servmon_user_mem_bytes{host=~\"$host\",user=~\"$user\"}[$__range])) * $step / 3600 / 2^30",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "suffix: GiB·h",
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "values": false,
+     "fields": ""
+    },
+    "colorMode": "value",
+    "graphMode": "none",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto"
+   },
+   "id": 6,
+   "gridPos": {
+    "x": 16,
+    "y": 1,
+    "w": 4,
+    "h": 4
+   }
+  },
+  {
+   "type": "stat",
+   "title": "…of which idle",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sum(sum_over_time(servmon_user_idle_mem_bytes{host=~\"$host\",user=~\"$user\"}[$__range])) * $step / 3600 / 2^30",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "suffix: GiB·h",
+     "color": {
+      "mode": "thresholds"
+     },
+     "thresholds": {
+      "mode": "absolute",
+      "steps": [
+       {
+        "color": "text",
+        "value": null
+       },
+       {
+        "color": "orange",
+        "value": 100
+       }
+      ]
+     }
+    },
+    "overrides": []
+   },
+   "options": {
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "values": false,
+     "fields": ""
+    },
+    "colorMode": "value",
+    "graphMode": "none",
+    "textMode": "value",
+    "justifyMode": "auto",
+    "orientation": "auto"
+   },
+   "id": 7,
+   "gridPos": {
+    "x": 20,
+    "y": 1,
+    "w": 4,
+    "h": 4
+   }
+  },
+  {
+   "type": "row",
+   "title": "Per user",
+   "id": 8,
+   "collapsed": false,
+   "gridPos": {
+    "x": 0,
+    "y": 5,
+    "w": 24,
+    "h": 1
+   },
+   "panels": []
+  },
+  {
+   "type": "table",
+   "title": "Usage by user (all selected servers)",
+   "description": "Integrals over the time range. GiB-h = GiB held × hours. idle VRAM % = share of the user's VRAM-hours spent with the holding job GPU-idle.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sum by(user) (sum_over_time(servmon_user_cpu_cores{host=~\"$host\",user=~\"$user\"}[$__range])) * $step / 3600",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "B",
+     "expr": "sum by(user) (sum_over_time(servmon_user_cpu_cores{host=~\"$host\",user=~\"$user\"}[$__range])) * $step / ($__range_s)",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "C",
+     "expr": "max by(user) (max_over_time(servmon_user_cpu_cores{host=~\"$host\",user=~\"$user\"}[$__range]))",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "D",
+     "expr": "sum by(user) (sum_over_time(servmon_user_mem_bytes{host=~\"$host\",user=~\"$user\"}[$__range])) * $step / 3600 / 2^30",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "E",
+     "expr": "max by(user) (max_over_time(servmon_user_mem_bytes{host=~\"$host\",user=~\"$user\"}[$__range]))",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "F",
+     "expr": "sum by(user) (sum_over_time(servmon_user_gpu_sm_percent{host=~\"$host\",user=~\"$user\"}[$__range])) * $step / 3600 / 100",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "G",
+     "expr": "sum by(user) (sum_over_time(servmon_user_gpu_mem_bytes{host=~\"$host\",user=~\"$user\"}[$__range])) * $step / 3600 / 2^30",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "H",
+     "expr": "max by(user) (max_over_time(sum by(user) (servmon_user_gpu_mem_bytes{host=~\"$host\",user=~\"$user\"})[$__range:]))",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "I",
+     "expr": "sum by(user) (sum_over_time(servmon_user_idle_gpu_mem_bytes{host=~\"$host\",user=~\"$user\"}[$__range])) * $step / 3600 / 2^30",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "J",
+     "expr": "100 * (sum by(user) (sum_over_time(servmon_user_idle_gpu_mem_bytes{host=~\"$host\",user=~\"$user\"}[$__range])) * $step / 3600) / (sum by(user) (sum_over_time(servmon_user_gpu_mem_bytes{host=~\"$host\",user=~\"$user\"}[$__range])) * $step / 3600 > 0)",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "K",
+     "expr": "sum by(user) (sum_over_time(servmon_user_idle_mem_bytes{host=~\"$host\",user=~\"$user\"}[$__range])) * $step / 3600 / 2^30",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    }
+   ],
+   "transformations": [
+    {
+     "id": "merge",
+     "options": {}
+    },
+    {
+     "id": "organize",
+     "options": {
+      "excludeByName": {
+       "Time": true,
+       "container": false
+      },
+      "renameByName": {
+       "Value #A": "CPU core-h",
+       "Value #B": "avg cores",
+       "Value #C": "peak cores",
+       "Value #D": "RAM GiB-h",
+       "Value #E": "peak RAM",
+       "Value #F": "GPU compute-h",
+       "Value #G": "VRAM GiB-h",
+       "Value #H": "peak VRAM",
+       "Value #I": "idle VRAM GiB-h",
+       "Value #J": "idle VRAM %",
+       "Value #K": "idle RAM GiB-h"
+      },
+      "indexByName": {
+       "host": 0,
+       "user": 1,
+       "kind": 2,
+       "pid": 3,
+       "gpu": 4,
+       "cmd": 5,
+       "CPU core-h": 6,
+       "avg cores": 7,
+       "peak cores": 8,
+       "RAM GiB-h": 9,
+       "peak RAM": 10,
+       "GPU compute-h": 11,
+       "VRAM GiB-h": 12,
+       "peak VRAM": 13,
+       "idle VRAM GiB-h": 14,
+       "idle VRAM %": 15,
+       "idle RAM GiB-h": 16
+      }
+     }
+    },
+    {
+     "id": "sortBy",
+     "options": {
+      "sort": [
+       {
+        "field": "GPU compute-h",
+        "desc": true
+       }
+      ]
+     }
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "filterable": true,
+      "align": "auto",
+      "cellOptions": {
+       "type": "auto"
+      }
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "CPU core-h"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "suffix: h"
+       },
+       {
+        "id": "decimals",
+        "value": 1
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "avg cores"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "short"
+       },
+       {
+        "id": "decimals",
+        "value": 2
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "peak cores"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "short"
+       },
+       {
+        "id": "decimals",
+        "value": 1
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "RAM GiB-h"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "suffix: GiB·h"
+       },
+       {
+        "id": "decimals",
+        "value": 1
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "peak RAM"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "bytes"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "GPU compute-h"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "suffix: h"
+       },
+       {
+        "id": "decimals",
+        "value": 2
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "VRAM GiB-h"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "suffix: GiB·h"
+       },
+       {
+        "id": "decimals",
+        "value": 1
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "peak VRAM"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "bytes"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "idle VRAM GiB-h"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "suffix: GiB·h"
+       },
+       {
+        "id": "decimals",
+        "value": 1
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "idle VRAM %"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "percent"
+       },
+       {
+        "id": "decimals",
+        "value": 0
+       },
+       {
+        "id": "custom.cellOptions",
+        "value": {
+         "type": "color-text"
+        }
+       },
+       {
+        "id": "thresholds",
+        "value": {
+         "mode": "absolute",
+         "steps": [
+          {
+           "color": "text",
+           "value": null
+          },
+          {
+           "color": "orange",
+           "value": 25
+          },
+          {
+           "color": "red",
+           "value": 50
+          }
+         ]
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "idle RAM GiB-h"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "suffix: GiB·h"
+       },
+       {
+        "id": "decimals",
+        "value": 1
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "cmd"
+      },
+      "properties": [
+       {
+        "id": "custom.width",
+        "value": 520
+       },
+       {
+        "id": "custom.inspect",
+        "value": true
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "user"
+      },
+      "properties": [
+       {
+        "id": "links",
+        "value": [
+         {
+          "title": "Usage of ${__value.raw}",
+          "url": "/d/servmon-accounting/usage-accounting?var-user=${__value.raw}&${host:queryparam}&${__url_time_range}"
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "showHeader": true,
+    "cellHeight": "sm",
+    "footer": {
+     "show": false
+    }
+   },
+   "id": 9,
+   "gridPos": {
+    "x": 0,
+    "y": 6,
+    "w": 24,
+    "h": 10
+   }
+  },
+  {
+   "type": "table",
+   "title": "Usage by server × user",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sum by(host,user) (sum_over_time(servmon_user_cpu_cores{host=~\"$host\",user=~\"$user\"}[$__range])) * $step / 3600",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "B",
+     "expr": "sum by(host,user) (sum_over_time(servmon_user_cpu_cores{host=~\"$host\",user=~\"$user\"}[$__range])) * $step / ($__range_s)",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "C",
+     "expr": "max by(host,user) (max_over_time(servmon_user_cpu_cores{host=~\"$host\",user=~\"$user\"}[$__range]))",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "D",
+     "expr": "sum by(host,user) (sum_over_time(servmon_user_mem_bytes{host=~\"$host\",user=~\"$user\"}[$__range])) * $step / 3600 / 2^30",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "E",
+     "expr": "max by(host,user) (max_over_time(servmon_user_mem_bytes{host=~\"$host\",user=~\"$user\"}[$__range]))",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "F",
+     "expr": "sum by(host,user) (sum_over_time(servmon_user_gpu_sm_percent{host=~\"$host\",user=~\"$user\"}[$__range])) * $step / 3600 / 100",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "G",
+     "expr": "sum by(host,user) (sum_over_time(servmon_user_gpu_mem_bytes{host=~\"$host\",user=~\"$user\"}[$__range])) * $step / 3600 / 2^30",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "H",
+     "expr": "max by(host,user) (max_over_time(sum by(host,user) (servmon_user_gpu_mem_bytes{host=~\"$host\",user=~\"$user\"})[$__range:]))",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "I",
+     "expr": "sum by(host,user) (sum_over_time(servmon_user_idle_gpu_mem_bytes{host=~\"$host\",user=~\"$user\"}[$__range])) * $step / 3600 / 2^30",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "J",
+     "expr": "100 * (sum by(host,user) (sum_over_time(servmon_user_idle_gpu_mem_bytes{host=~\"$host\",user=~\"$user\"}[$__range])) * $step / 3600) / (sum by(host,user) (sum_over_time(servmon_user_gpu_mem_bytes{host=~\"$host\",user=~\"$user\"}[$__range])) * $step / 3600 > 0)",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "K",
+     "expr": "sum by(host,user) (sum_over_time(servmon_user_idle_mem_bytes{host=~\"$host\",user=~\"$user\"}[$__range])) * $step / 3600 / 2^30",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    }
+   ],
+   "transformations": [
+    {
+     "id": "merge",
+     "options": {}
+    },
+    {
+     "id": "organize",
+     "options": {
+      "excludeByName": {
+       "Time": true,
+       "container": false
+      },
+      "renameByName": {
+       "Value #A": "CPU core-h",
+       "Value #B": "avg cores",
+       "Value #C": "peak cores",
+       "Value #D": "RAM GiB-h",
+       "Value #E": "peak RAM",
+       "Value #F": "GPU compute-h",
+       "Value #G": "VRAM GiB-h",
+       "Value #H": "peak VRAM",
+       "Value #I": "idle VRAM GiB-h",
+       "Value #J": "idle VRAM %",
+       "Value #K": "idle RAM GiB-h"
+      },
+      "indexByName": {
+       "host": 0,
+       "user": 1,
+       "kind": 2,
+       "pid": 3,
+       "gpu": 4,
+       "cmd": 5,
+       "CPU core-h": 6,
+       "avg cores": 7,
+       "peak cores": 8,
+       "RAM GiB-h": 9,
+       "peak RAM": 10,
+       "GPU compute-h": 11,
+       "VRAM GiB-h": 12,
+       "peak VRAM": 13,
+       "idle VRAM GiB-h": 14,
+       "idle VRAM %": 15,
+       "idle RAM GiB-h": 16
+      }
+     }
+    },
+    {
+     "id": "sortBy",
+     "options": {
+      "sort": [
+       {
+        "field": "GPU compute-h",
+        "desc": true
+       }
+      ]
+     }
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "filterable": true,
+      "align": "auto",
+      "cellOptions": {
+       "type": "auto"
+      }
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "CPU core-h"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "suffix: h"
+       },
+       {
+        "id": "decimals",
+        "value": 1
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "avg cores"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "short"
+       },
+       {
+        "id": "decimals",
+        "value": 2
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "peak cores"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "short"
+       },
+       {
+        "id": "decimals",
+        "value": 1
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "RAM GiB-h"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "suffix: GiB·h"
+       },
+       {
+        "id": "decimals",
+        "value": 1
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "peak RAM"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "bytes"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "GPU compute-h"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "suffix: h"
+       },
+       {
+        "id": "decimals",
+        "value": 2
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "VRAM GiB-h"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "suffix: GiB·h"
+       },
+       {
+        "id": "decimals",
+        "value": 1
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "peak VRAM"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "bytes"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "idle VRAM GiB-h"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "suffix: GiB·h"
+       },
+       {
+        "id": "decimals",
+        "value": 1
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "idle VRAM %"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "percent"
+       },
+       {
+        "id": "decimals",
+        "value": 0
+       },
+       {
+        "id": "custom.cellOptions",
+        "value": {
+         "type": "color-text"
+        }
+       },
+       {
+        "id": "thresholds",
+        "value": {
+         "mode": "absolute",
+         "steps": [
+          {
+           "color": "text",
+           "value": null
+          },
+          {
+           "color": "orange",
+           "value": 25
+          },
+          {
+           "color": "red",
+           "value": 50
+          }
+         ]
+        }
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "idle RAM GiB-h"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "suffix: GiB·h"
+       },
+       {
+        "id": "decimals",
+        "value": 1
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "cmd"
+      },
+      "properties": [
+       {
+        "id": "custom.width",
+        "value": 520
+       },
+       {
+        "id": "custom.inspect",
+        "value": true
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "user"
+      },
+      "properties": [
+       {
+        "id": "links",
+        "value": [
+         {
+          "title": "Usage of ${__value.raw}",
+          "url": "/d/servmon-accounting/usage-accounting?var-user=${__value.raw}&${host:queryparam}&${__url_time_range}"
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "showHeader": true,
+    "cellHeight": "sm",
+    "footer": {
+     "show": false
+    }
+   },
+   "id": 10,
+   "gridPos": {
+    "x": 0,
+    "y": 16,
+    "w": 24,
+    "h": 10
+   }
+  },
+  {
+   "type": "bargauge",
+   "title": "GPU compute-hours by user",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sort_desc(sum by(user) (sum_over_time(servmon_user_gpu_sm_percent{host=~\"$host\",user=~\"$user\"}[$__range])) * $step / 3600 / 100 > 0)",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "{{user}}",
+     "instant": true,
+     "range": false
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "suffix: h",
+     "min": 0,
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "green"
+     },
+     "decimals": 1
+    },
+    "overrides": []
+   },
+   "options": {
+    "orientation": "horizontal",
+    "displayMode": "basic",
+    "showUnfilled": true,
+    "valueMode": "text",
+    "namePlacement": "left",
+    "sizing": "manual",
+    "text": {
+     "titleSize": 12,
+     "valueSize": 14
+    },
+    "minVizHeight": 16,
+    "maxVizHeight": 24,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "values": false,
+     "fields": ""
+    }
+   },
+   "id": 11,
+   "gridPos": {
+    "x": 0,
+    "y": 26,
+    "w": 8,
+    "h": 10
+   }
+  },
+  {
+   "type": "bargauge",
+   "title": "VRAM GiB-hours by user",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sort_desc(sum by(user) (sum_over_time(servmon_user_gpu_mem_bytes{host=~\"$host\",user=~\"$user\"}[$__range])) * $step / 3600 / 2^30 > 0)",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "{{user}}",
+     "instant": true,
+     "range": false
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "suffix: GiB·h",
+     "min": 0,
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "purple"
+     },
+     "decimals": 1
+    },
+    "overrides": []
+   },
+   "options": {
+    "orientation": "horizontal",
+    "displayMode": "basic",
+    "showUnfilled": true,
+    "valueMode": "text",
+    "namePlacement": "left",
+    "sizing": "manual",
+    "text": {
+     "titleSize": 12,
+     "valueSize": 14
+    },
+    "minVizHeight": 16,
+    "maxVizHeight": 24,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "values": false,
+     "fields": ""
+    }
+   },
+   "id": 12,
+   "gridPos": {
+    "x": 8,
+    "y": 26,
+    "w": 8,
+    "h": 10
+   }
+  },
+  {
+   "type": "bargauge",
+   "title": "CPU core-hours by user",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sort_desc(sum by(user) (sum_over_time(servmon_user_cpu_cores{host=~\"$host\",user=~\"$user\"}[$__range])) * $step / 3600 > 0.1)",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "{{user}}",
+     "instant": true,
+     "range": false
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "suffix: h",
+     "min": 0,
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "blue"
+     },
+     "decimals": 1
+    },
+    "overrides": []
+   },
+   "options": {
+    "orientation": "horizontal",
+    "displayMode": "basic",
+    "showUnfilled": true,
+    "valueMode": "text",
+    "namePlacement": "left",
+    "sizing": "manual",
+    "text": {
+     "titleSize": 12,
+     "valueSize": 14
+    },
+    "minVizHeight": 16,
+    "maxVizHeight": 24,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "values": false,
+     "fields": ""
+    }
+   },
+   "id": 13,
+   "gridPos": {
+    "x": 16,
+    "y": 26,
+    "w": 8,
+    "h": 10
+   }
+  },
+  {
+   "type": "row",
+   "title": "Over time (bucketed; bucket size follows the zoom level, min 1h)",
+   "id": 14,
+   "collapsed": false,
+   "gridPos": {
+    "x": 0,
+    "y": 36,
+    "w": 24,
+    "h": 1
+   },
+   "panels": []
+  },
+  {
+   "type": "timeseries",
+   "title": "GPU compute-hours per bucket",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sum by(user) (sum_over_time(servmon_user_gpu_sm_percent{host=~\"$host\",user=~\"$user\"}[$__interval])) / 100 * $step / 3600 > 0",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "{{user}}"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "suffix: h",
+     "custom": {
+      "lineWidth": 1,
+      "fillOpacity": 80,
+      "showPoints": "never",
+      "spanNulls": 60000,
+      "gradientMode": "none",
+      "stacking": {
+       "mode": "normal",
+       "group": "A"
+      },
+      "axisSoftMin": 0,
+      "insertNulls": false,
+      "drawStyle": "bars",
+      "barAlignment": -1
+     },
+     "decimals": 1
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "right",
+     "calcs": [
+      "sum"
+     ],
+     "showLegend": true,
+     "sortBy": null,
+     "sortDesc": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "interval": "1h",
+   "id": 15,
+   "gridPos": {
+    "x": 0,
+    "y": 37,
+    "w": 12,
+    "h": 9
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "CPU core-hours per bucket",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sum by(user) (sum_over_time(servmon_user_cpu_cores{host=~\"$host\",user=~\"$user\"}[$__interval])) * $step / 3600 > 0.05",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "{{user}}"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "suffix: h",
+     "custom": {
+      "lineWidth": 1,
+      "fillOpacity": 80,
+      "showPoints": "never",
+      "spanNulls": 60000,
+      "gradientMode": "none",
+      "stacking": {
+       "mode": "normal",
+       "group": "A"
+      },
+      "axisSoftMin": 0,
+      "insertNulls": false,
+      "drawStyle": "bars",
+      "barAlignment": -1
+     },
+     "decimals": 1
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "right",
+     "calcs": [
+      "sum"
+     ],
+     "showLegend": true,
+     "sortBy": null,
+     "sortDesc": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "interval": "1h",
+   "id": 16,
+   "gridPos": {
+    "x": 12,
+    "y": 37,
+    "w": 12,
+    "h": 9
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "VRAM GiB-hours per bucket",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sum by(user) (sum_over_time(servmon_user_gpu_mem_bytes{host=~\"$host\",user=~\"$user\"}[$__interval])) * $step / 3600 / 2^30 > 0",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "{{user}}"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "suffix: GiB·h",
+     "custom": {
+      "lineWidth": 1,
+      "fillOpacity": 80,
+      "showPoints": "never",
+      "spanNulls": 60000,
+      "gradientMode": "none",
+      "stacking": {
+       "mode": "normal",
+       "group": "A"
+      },
+      "axisSoftMin": 0,
+      "insertNulls": false,
+      "drawStyle": "bars",
+      "barAlignment": -1
+     },
+     "decimals": 0
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "right",
+     "calcs": [
+      "sum"
+     ],
+     "showLegend": true,
+     "sortBy": null,
+     "sortDesc": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "interval": "1h",
+   "id": 17,
+   "gridPos": {
+    "x": 0,
+    "y": 46,
+    "w": 12,
+    "h": 9
+   }
+  },
+  {
+   "type": "timeseries",
+   "title": "Idle VRAM GiB-hours per bucket",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sum by(user) (sum_over_time(servmon_user_idle_gpu_mem_bytes{host=~\"$host\",user=~\"$user\"}[$__interval])) * $step / 3600 / 2^30 > 0",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "{{user}}"
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "suffix: GiB·h",
+     "custom": {
+      "lineWidth": 1,
+      "fillOpacity": 80,
+      "showPoints": "never",
+      "spanNulls": 60000,
+      "gradientMode": "none",
+      "stacking": {
+       "mode": "normal",
+       "group": "A"
+      },
+      "axisSoftMin": 0,
+      "insertNulls": false,
+      "drawStyle": "bars",
+      "barAlignment": -1
+     },
+     "decimals": 0
+    },
+    "overrides": []
+   },
+   "options": {
+    "legend": {
+     "displayMode": "table",
+     "placement": "right",
+     "calcs": [
+      "sum"
+     ],
+     "showLegend": true,
+     "sortBy": null,
+     "sortDesc": true
+    },
+    "tooltip": {
+     "mode": "multi",
+     "sort": "desc"
+    }
+   },
+   "interval": "1h",
+   "id": 18,
+   "gridPos": {
+    "x": 12,
+    "y": 46,
+    "w": 12,
+    "h": 9
+   }
+  },
+  {
+   "type": "row",
+   "title": "By workload type",
+   "id": 19,
+   "collapsed": false,
+   "gridPos": {
+    "x": 0,
+    "y": 55,
+    "w": 24,
+    "h": 1
+   },
+   "panels": []
+  },
+  {
+   "type": "bargauge",
+   "title": "GPU compute-hours by workload",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sort_desc(sum by(kind) (sum_over_time(servmon_job_gpu_sm_percent{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"}[$__range])) * $step / 3600 / 100 > 0)",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "{{kind}}",
+     "instant": true,
+     "range": false
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "suffix: h",
+     "min": 0,
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "green"
+     },
+     "decimals": 1
+    },
+    "overrides": []
+   },
+   "options": {
+    "orientation": "horizontal",
+    "displayMode": "basic",
+    "showUnfilled": true,
+    "valueMode": "text",
+    "namePlacement": "left",
+    "sizing": "manual",
+    "text": {
+     "titleSize": 12,
+     "valueSize": 14
+    },
+    "minVizHeight": 16,
+    "maxVizHeight": 24,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "values": false,
+     "fields": ""
+    }
+   },
+   "id": 20,
+   "gridPos": {
+    "x": 0,
+    "y": 56,
+    "w": 8,
+    "h": 9
+   }
+  },
+  {
+   "type": "bargauge",
+   "title": "VRAM GiB-hours by workload",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sort_desc(sum by(kind) (sum_over_time(servmon_job_gpu_mem_bytes{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"}[$__range])) * $step / 3600 / 2^30 > 0)",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "{{kind}}",
+     "instant": true,
+     "range": false
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "suffix: GiB·h",
+     "min": 0,
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "purple"
+     },
+     "decimals": 1
+    },
+    "overrides": []
+   },
+   "options": {
+    "orientation": "horizontal",
+    "displayMode": "basic",
+    "showUnfilled": true,
+    "valueMode": "text",
+    "namePlacement": "left",
+    "sizing": "manual",
+    "text": {
+     "titleSize": 12,
+     "valueSize": 14
+    },
+    "minVizHeight": 16,
+    "maxVizHeight": 24,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "values": false,
+     "fields": ""
+    }
+   },
+   "id": 21,
+   "gridPos": {
+    "x": 8,
+    "y": 56,
+    "w": 8,
+    "h": 9
+   }
+  },
+  {
+   "type": "bargauge",
+   "title": "CPU core-hours by workload",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sort_desc(sum by(kind) (sum_over_time(servmon_job_cpu_cores{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"}[$__range])) * $step / 3600 > 0.1)",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "{{kind}}",
+     "instant": true,
+     "range": false
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "unit": "suffix: h",
+     "min": 0,
+     "color": {
+      "mode": "fixed",
+      "fixedColor": "blue"
+     },
+     "decimals": 1
+    },
+    "overrides": []
+   },
+   "options": {
+    "orientation": "horizontal",
+    "displayMode": "basic",
+    "showUnfilled": true,
+    "valueMode": "text",
+    "namePlacement": "left",
+    "sizing": "manual",
+    "text": {
+     "titleSize": 12,
+     "valueSize": 14
+    },
+    "minVizHeight": 16,
+    "maxVizHeight": 24,
+    "reduceOptions": {
+     "calcs": [
+      "lastNotNull"
+     ],
+     "values": false,
+     "fields": ""
+    }
+   },
+   "id": 22,
+   "gridPos": {
+    "x": 16,
+    "y": 56,
+    "w": 8,
+    "h": 9
+   }
+  },
+  {
+   "type": "table",
+   "title": "Workload × user",
+   "description": "Only jobs above the export threshold are counted here, so totals are slightly below the per-user numbers.",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "sum by(kind,user) (sum_over_time(servmon_job_cpu_cores{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"}[$__range])) * $step / 3600",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "B",
+     "expr": "sum by(kind,user) (sum_over_time(servmon_job_mem_bytes{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"}[$__range])) * $step / 3600 / 2^30",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "C",
+     "expr": "sum by(kind,user) (sum_over_time(servmon_job_gpu_sm_percent{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"}[$__range])) * $step / 3600 / 100",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "D",
+     "expr": "sum by(kind,user) (sum_over_time(servmon_job_gpu_mem_bytes{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"}[$__range])) * $step / 3600 / 2^30",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "E",
+     "expr": "sum by(kind,user) (sum_over_time(servmon_job_idle_gpu_mem_bytes{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"}[$__range])) * $step / 3600 / 2^30",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    }
+   ],
+   "transformations": [
+    {
+     "id": "merge",
+     "options": {}
+    },
+    {
+     "id": "organize",
+     "options": {
+      "excludeByName": {
+       "Time": true,
+       "container": false
+      },
+      "renameByName": {
+       "Value #A": "CPU core-h",
+       "Value #B": "RAM GiB-h",
+       "Value #C": "GPU compute-h",
+       "Value #D": "VRAM GiB-h",
+       "Value #E": "idle VRAM GiB-h"
+      },
+      "indexByName": {
+       "kind": 0,
+       "user": 1,
+       "CPU core-h": 2,
+       "RAM GiB-h": 3,
+       "GPU compute-h": 4,
+       "VRAM GiB-h": 5,
+       "idle VRAM GiB-h": 6
+      }
+     }
+    },
+    {
+     "id": "sortBy",
+     "options": {
+      "sort": [
+       {
+        "field": "GPU compute-h",
+        "desc": true
+       }
+      ]
+     }
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "filterable": true,
+      "align": "auto",
+      "cellOptions": {
+       "type": "auto"
+      }
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "CPU core-h"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "suffix: h"
+       },
+       {
+        "id": "decimals",
+        "value": 1
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "RAM GiB-h"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "suffix: GiB·h"
+       },
+       {
+        "id": "decimals",
+        "value": 1
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "GPU compute-h"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "suffix: h"
+       },
+       {
+        "id": "decimals",
+        "value": 2
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "VRAM GiB-h"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "suffix: GiB·h"
+       },
+       {
+        "id": "decimals",
+        "value": 1
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "idle VRAM GiB-h"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "suffix: GiB·h"
+       },
+       {
+        "id": "decimals",
+        "value": 1
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "cmd"
+      },
+      "properties": [
+       {
+        "id": "custom.width",
+        "value": 520
+       },
+       {
+        "id": "custom.inspect",
+        "value": true
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "user"
+      },
+      "properties": [
+       {
+        "id": "links",
+        "value": [
+         {
+          "title": "Usage of ${__value.raw}",
+          "url": "/d/servmon-accounting/usage-accounting?var-user=${__value.raw}&${host:queryparam}&${__url_time_range}"
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "showHeader": true,
+    "cellHeight": "sm",
+    "footer": {
+     "show": false
+    }
+   },
+   "id": 23,
+   "gridPos": {
+    "x": 0,
+    "y": 65,
+    "w": 24,
+    "h": 9
+   }
+  },
+  {
+   "type": "row",
+   "title": "Top jobs / programs in the period",
+   "id": 24,
+   "collapsed": false,
+   "gridPos": {
+    "x": 0,
+    "y": 74,
+    "w": 24,
+    "h": 1
+   },
+   "panels": []
+  },
+  {
+   "type": "table",
+   "title": "Top 40 jobs by GPU compute",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "(sum by(host,user,pid,kind,cmd,container) (sum_over_time(servmon_job_gpu_sm_percent{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"}[$__range])) * $step / 3600 / 100) and on(host,user,pid,kind,cmd,container) topk(40, sum by(host,user,pid,kind,cmd,container) (sum_over_time(servmon_job_gpu_sm_percent{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"}[$__range])) * $step / 3600 / 100)",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "B",
+     "expr": "(sum by(host,user,pid,kind,cmd,container) (sum_over_time(servmon_job_gpu_mem_bytes{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"}[$__range])) * $step / 3600 / 2^30) and on(host,user,pid,kind,cmd,container) topk(40, sum by(host,user,pid,kind,cmd,container) (sum_over_time(servmon_job_gpu_sm_percent{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"}[$__range])) * $step / 3600 / 100)",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "C",
+     "expr": "(sum by(host,user,pid,kind,cmd,container) (sum_over_time(servmon_job_idle_gpu_mem_bytes{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"}[$__range])) * $step / 3600 / 2^30) and on(host,user,pid,kind,cmd,container) topk(40, sum by(host,user,pid,kind,cmd,container) (sum_over_time(servmon_job_gpu_sm_percent{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"}[$__range])) * $step / 3600 / 100)",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "D",
+     "expr": "(sum by(host,user,pid,kind,cmd,container) (sum_over_time(servmon_job_cpu_cores{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"}[$__range])) * $step / 3600) and on(host,user,pid,kind,cmd,container) topk(40, sum by(host,user,pid,kind,cmd,container) (sum_over_time(servmon_job_gpu_sm_percent{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"}[$__range])) * $step / 3600 / 100)",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "E",
+     "expr": "(max by(host,user,pid,kind,cmd,container) (max_over_time(servmon_job_mem_bytes{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"}[$__range]))) and on(host,user,pid,kind,cmd,container) topk(40, sum by(host,user,pid,kind,cmd,container) (sum_over_time(servmon_job_gpu_sm_percent{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"}[$__range])) * $step / 3600 / 100)",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "F",
+     "expr": "(count by(host,user,pid,kind,cmd,container) (count_over_time(servmon_job_cpu_cores{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"}[$__range])) * $step) and on(host,user,pid,kind,cmd,container) topk(40, sum by(host,user,pid,kind,cmd,container) (sum_over_time(servmon_job_gpu_sm_percent{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"}[$__range])) * $step / 3600 / 100)",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    }
+   ],
+   "transformations": [
+    {
+     "id": "merge",
+     "options": {}
+    },
+    {
+     "id": "organize",
+     "options": {
+      "excludeByName": {
+       "Time": true,
+       "container": false
+      },
+      "renameByName": {
+       "Value #A": "GPU compute-h",
+       "Value #B": "VRAM GiB-h",
+       "Value #C": "idle VRAM GiB-h",
+       "Value #D": "CPU core-h",
+       "Value #E": "peak RAM",
+       "Value #F": "seen for"
+      },
+      "indexByName": {
+       "host": 0,
+       "user": 1,
+       "kind": 2,
+       "pid": 3,
+       "gpu": 4,
+       "cmd": 5,
+       "GPU compute-h": 6,
+       "VRAM GiB-h": 7,
+       "idle VRAM GiB-h": 8,
+       "CPU core-h": 9,
+       "peak RAM": 10,
+       "seen for": 11
+      }
+     }
+    },
+    {
+     "id": "sortBy",
+     "options": {
+      "sort": [
+       {
+        "field": "GPU compute-h",
+        "desc": true
+       }
+      ]
+     }
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "filterable": true,
+      "align": "auto",
+      "cellOptions": {
+       "type": "auto"
+      }
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "GPU compute-h"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "suffix: h"
+       },
+       {
+        "id": "decimals",
+        "value": 2
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "VRAM GiB-h"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "suffix: GiB·h"
+       },
+       {
+        "id": "decimals",
+        "value": 1
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "idle VRAM GiB-h"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "suffix: GiB·h"
+       },
+       {
+        "id": "decimals",
+        "value": 1
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "CPU core-h"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "suffix: h"
+       },
+       {
+        "id": "decimals",
+        "value": 1
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "peak RAM"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "bytes"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "seen for"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "s"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "cmd"
+      },
+      "properties": [
+       {
+        "id": "custom.width",
+        "value": 520
+       },
+       {
+        "id": "custom.inspect",
+        "value": true
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "user"
+      },
+      "properties": [
+       {
+        "id": "links",
+        "value": [
+         {
+          "title": "Usage of ${__value.raw}",
+          "url": "/d/servmon-accounting/usage-accounting?var-user=${__value.raw}&${host:queryparam}&${__url_time_range}"
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "showHeader": true,
+    "cellHeight": "sm",
+    "footer": {
+     "show": false
+    }
+   },
+   "id": 25,
+   "gridPos": {
+    "x": 0,
+    "y": 75,
+    "w": 24,
+    "h": 10
+   }
+  },
+  {
+   "type": "table",
+   "title": "Top 40 jobs by VRAM held",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "(sum by(host,user,pid,kind,cmd,container) (sum_over_time(servmon_job_gpu_sm_percent{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"}[$__range])) * $step / 3600 / 100) and on(host,user,pid,kind,cmd,container) topk(40, sum by(host,user,pid,kind,cmd,container) (sum_over_time(servmon_job_gpu_mem_bytes{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"}[$__range])) * $step / 3600 / 2^30)",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "B",
+     "expr": "(sum by(host,user,pid,kind,cmd,container) (sum_over_time(servmon_job_gpu_mem_bytes{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"}[$__range])) * $step / 3600 / 2^30) and on(host,user,pid,kind,cmd,container) topk(40, sum by(host,user,pid,kind,cmd,container) (sum_over_time(servmon_job_gpu_mem_bytes{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"}[$__range])) * $step / 3600 / 2^30)",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "C",
+     "expr": "(sum by(host,user,pid,kind,cmd,container) (sum_over_time(servmon_job_idle_gpu_mem_bytes{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"}[$__range])) * $step / 3600 / 2^30) and on(host,user,pid,kind,cmd,container) topk(40, sum by(host,user,pid,kind,cmd,container) (sum_over_time(servmon_job_gpu_mem_bytes{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"}[$__range])) * $step / 3600 / 2^30)",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "D",
+     "expr": "(sum by(host,user,pid,kind,cmd,container) (sum_over_time(servmon_job_cpu_cores{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"}[$__range])) * $step / 3600) and on(host,user,pid,kind,cmd,container) topk(40, sum by(host,user,pid,kind,cmd,container) (sum_over_time(servmon_job_gpu_mem_bytes{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"}[$__range])) * $step / 3600 / 2^30)",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "E",
+     "expr": "(max by(host,user,pid,kind,cmd,container) (max_over_time(servmon_job_mem_bytes{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"}[$__range]))) and on(host,user,pid,kind,cmd,container) topk(40, sum by(host,user,pid,kind,cmd,container) (sum_over_time(servmon_job_gpu_mem_bytes{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"}[$__range])) * $step / 3600 / 2^30)",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "F",
+     "expr": "(count by(host,user,pid,kind,cmd,container) (count_over_time(servmon_job_cpu_cores{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"}[$__range])) * $step) and on(host,user,pid,kind,cmd,container) topk(40, sum by(host,user,pid,kind,cmd,container) (sum_over_time(servmon_job_gpu_mem_bytes{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"}[$__range])) * $step / 3600 / 2^30)",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    }
+   ],
+   "transformations": [
+    {
+     "id": "merge",
+     "options": {}
+    },
+    {
+     "id": "organize",
+     "options": {
+      "excludeByName": {
+       "Time": true,
+       "container": false
+      },
+      "renameByName": {
+       "Value #A": "GPU compute-h",
+       "Value #B": "VRAM GiB-h",
+       "Value #C": "idle VRAM GiB-h",
+       "Value #D": "CPU core-h",
+       "Value #E": "peak RAM",
+       "Value #F": "seen for"
+      },
+      "indexByName": {
+       "host": 0,
+       "user": 1,
+       "kind": 2,
+       "pid": 3,
+       "gpu": 4,
+       "cmd": 5,
+       "GPU compute-h": 6,
+       "VRAM GiB-h": 7,
+       "idle VRAM GiB-h": 8,
+       "CPU core-h": 9,
+       "peak RAM": 10,
+       "seen for": 11
+      }
+     }
+    },
+    {
+     "id": "sortBy",
+     "options": {
+      "sort": [
+       {
+        "field": "VRAM GiB-h",
+        "desc": true
+       }
+      ]
+     }
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "filterable": true,
+      "align": "auto",
+      "cellOptions": {
+       "type": "auto"
+      }
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "GPU compute-h"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "suffix: h"
+       },
+       {
+        "id": "decimals",
+        "value": 2
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "VRAM GiB-h"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "suffix: GiB·h"
+       },
+       {
+        "id": "decimals",
+        "value": 1
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "idle VRAM GiB-h"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "suffix: GiB·h"
+       },
+       {
+        "id": "decimals",
+        "value": 1
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "CPU core-h"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "suffix: h"
+       },
+       {
+        "id": "decimals",
+        "value": 1
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "peak RAM"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "bytes"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "seen for"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "s"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "cmd"
+      },
+      "properties": [
+       {
+        "id": "custom.width",
+        "value": 520
+       },
+       {
+        "id": "custom.inspect",
+        "value": true
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "user"
+      },
+      "properties": [
+       {
+        "id": "links",
+        "value": [
+         {
+          "title": "Usage of ${__value.raw}",
+          "url": "/d/servmon-accounting/usage-accounting?var-user=${__value.raw}&${host:queryparam}&${__url_time_range}"
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "showHeader": true,
+    "cellHeight": "sm",
+    "footer": {
+     "show": false
+    }
+   },
+   "id": 26,
+   "gridPos": {
+    "x": 0,
+    "y": 85,
+    "w": 24,
+    "h": 10
+   }
+  },
+  {
+   "type": "table",
+   "title": "Top 40 jobs by CPU",
+   "description": "",
+   "datasource": {
+    "type": "prometheus",
+    "uid": "servmon-prom"
+   },
+   "targets": [
+    {
+     "refId": "A",
+     "expr": "(sum by(host,user,pid,kind,cmd,container) (sum_over_time(servmon_job_gpu_sm_percent{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"}[$__range])) * $step / 3600 / 100) and on(host,user,pid,kind,cmd,container) topk(40, sum by(host,user,pid,kind,cmd,container) (sum_over_time(servmon_job_cpu_cores{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"}[$__range])) * $step / 3600)",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "B",
+     "expr": "(sum by(host,user,pid,kind,cmd,container) (sum_over_time(servmon_job_gpu_mem_bytes{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"}[$__range])) * $step / 3600 / 2^30) and on(host,user,pid,kind,cmd,container) topk(40, sum by(host,user,pid,kind,cmd,container) (sum_over_time(servmon_job_cpu_cores{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"}[$__range])) * $step / 3600)",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "C",
+     "expr": "(sum by(host,user,pid,kind,cmd,container) (sum_over_time(servmon_job_idle_gpu_mem_bytes{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"}[$__range])) * $step / 3600 / 2^30) and on(host,user,pid,kind,cmd,container) topk(40, sum by(host,user,pid,kind,cmd,container) (sum_over_time(servmon_job_cpu_cores{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"}[$__range])) * $step / 3600)",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "D",
+     "expr": "(sum by(host,user,pid,kind,cmd,container) (sum_over_time(servmon_job_cpu_cores{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"}[$__range])) * $step / 3600) and on(host,user,pid,kind,cmd,container) topk(40, sum by(host,user,pid,kind,cmd,container) (sum_over_time(servmon_job_cpu_cores{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"}[$__range])) * $step / 3600)",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "E",
+     "expr": "(max by(host,user,pid,kind,cmd,container) (max_over_time(servmon_job_mem_bytes{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"}[$__range]))) and on(host,user,pid,kind,cmd,container) topk(40, sum by(host,user,pid,kind,cmd,container) (sum_over_time(servmon_job_cpu_cores{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"}[$__range])) * $step / 3600)",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    },
+    {
+     "refId": "F",
+     "expr": "(count by(host,user,pid,kind,cmd,container) (count_over_time(servmon_job_cpu_cores{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"}[$__range])) * $step) and on(host,user,pid,kind,cmd,container) topk(40, sum by(host,user,pid,kind,cmd,container) (sum_over_time(servmon_job_cpu_cores{host=~\"$host\",user=~\"$user\",kind=~\"$kind\"}[$__range])) * $step / 3600)",
+     "datasource": {
+      "type": "prometheus",
+      "uid": "servmon-prom"
+     },
+     "legendFormat": "__auto",
+     "instant": true,
+     "range": false,
+     "format": "table"
+    }
+   ],
+   "transformations": [
+    {
+     "id": "merge",
+     "options": {}
+    },
+    {
+     "id": "organize",
+     "options": {
+      "excludeByName": {
+       "Time": true,
+       "container": false
+      },
+      "renameByName": {
+       "Value #A": "GPU compute-h",
+       "Value #B": "VRAM GiB-h",
+       "Value #C": "idle VRAM GiB-h",
+       "Value #D": "CPU core-h",
+       "Value #E": "peak RAM",
+       "Value #F": "seen for"
+      },
+      "indexByName": {
+       "host": 0,
+       "user": 1,
+       "kind": 2,
+       "pid": 3,
+       "gpu": 4,
+       "cmd": 5,
+       "GPU compute-h": 6,
+       "VRAM GiB-h": 7,
+       "idle VRAM GiB-h": 8,
+       "CPU core-h": 9,
+       "peak RAM": 10,
+       "seen for": 11
+      }
+     }
+    },
+    {
+     "id": "sortBy",
+     "options": {
+      "sort": [
+       {
+        "field": "CPU core-h",
+        "desc": true
+       }
+      ]
+     }
+    }
+   ],
+   "fieldConfig": {
+    "defaults": {
+     "custom": {
+      "filterable": true,
+      "align": "auto",
+      "cellOptions": {
+       "type": "auto"
+      }
+     }
+    },
+    "overrides": [
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "GPU compute-h"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "suffix: h"
+       },
+       {
+        "id": "decimals",
+        "value": 2
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "VRAM GiB-h"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "suffix: GiB·h"
+       },
+       {
+        "id": "decimals",
+        "value": 1
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "idle VRAM GiB-h"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "suffix: GiB·h"
+       },
+       {
+        "id": "decimals",
+        "value": 1
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "CPU core-h"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "suffix: h"
+       },
+       {
+        "id": "decimals",
+        "value": 1
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "peak RAM"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "bytes"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "seen for"
+      },
+      "properties": [
+       {
+        "id": "unit",
+        "value": "s"
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "cmd"
+      },
+      "properties": [
+       {
+        "id": "custom.width",
+        "value": 520
+       },
+       {
+        "id": "custom.inspect",
+        "value": true
+       }
+      ]
+     },
+     {
+      "matcher": {
+       "id": "byName",
+       "options": "user"
+      },
+      "properties": [
+       {
+        "id": "links",
+        "value": [
+         {
+          "title": "Usage of ${__value.raw}",
+          "url": "/d/servmon-accounting/usage-accounting?var-user=${__value.raw}&${host:queryparam}&${__url_time_range}"
+         }
+        ]
+       }
+      ]
+     }
+    ]
+   },
+   "options": {
+    "showHeader": true,
+    "cellHeight": "sm",
+    "footer": {
+     "show": false
+    }
+   },
+   "id": 27,
+   "gridPos": {
+    "x": 0,
+    "y": 95,
+    "w": 24,
+    "h": 10
+   }
+  }
+ ]
+}

@@ -1,0 +1,65 @@
+# servmon for Docker: collector + Prometheus + Grafana. On Linux, Podman is the
+# recommended way (scripts/podman-install.sh); this file is the Docker equivalent.
+#   scripts/setup.sh && docker compose up -d --build
+name: servmon
+
+x-user: &user "${SERVMON_UID:-1000}:${SERVMON_GID:-1000}"   # files in data/ stay owned by you
+
+services:
+  collector:
+    build:
+      context: .
+      dockerfile: deploy/docker/collector.Dockerfile
+      args:
+        UID: ${SERVMON_UID:-1000}
+        GID: ${SERVMON_GID:-1000}
+    image: localhost/servmon-collector
+    restart: unless-stopped
+    volumes:
+      - ./servmon:/servmon/servmon:ro                 # edits to agent.py apply on restart
+      - ./config.toml:/servmon/config.toml:ro
+      - ${SSH_DIR:-~/.ssh}:/home/servmon/.ssh:ro      # keys + Host aliases used in config.toml
+      - ${SERVMON_DATA:-./data}/archive:/servmon/data/archive
+    ports:
+      - "127.0.0.1:${COLLECTOR_PORT:-9877}:9877"      # /metrics, /api/snapshot, /healthz
+
+  prometheus:
+    image: docker.io/prom/prometheus:v3.16.0
+    user: *user
+    restart: unless-stopped
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.path=/prometheus
+      - --storage.tsdb.retention.time=${RETENTION_TIME:-2y}
+      - --storage.tsdb.retention.size=${RETENTION_SIZE:-40GB}
+      - --web.enable-admin-api
+      - --query.timeout=2m
+    volumes:
+      - ./deploy/prometheus.docker.yml:/etc/prometheus/prometheus.yml:ro
+      - ${SERVMON_DATA:-./data}/prometheus:/prometheus
+    ports:
+      - "127.0.0.1:${PROMETHEUS_PORT:-9390}:9090"
+
+  grafana:
+    image: docker.io/grafana/grafana:13.3.1
+    user: *user
+    restart: unless-stopped
+    depends_on: [prometheus]
+    environment:
+      SERVMON_ROOT: /servmon
+      PROM_URL: http://prometheus:9090
+      GF_PATHS_CONFIG: /servmon/deploy/grafana/grafana.ini
+      GF_PATHS_DATA: /servmon/data/grafana
+      GF_PATHS_LOGS: /servmon/data/grafana/log
+      GF_PATHS_PLUGINS: /servmon/data/grafana/plugins
+      GF_PATHS_PROVISIONING: /servmon/deploy/grafana/provisioning
+      GF_SERVER_HTTP_ADDR: 0.0.0.0
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-admin}   # only used when data/grafana is created
+    env_file:                     # your Grafana settings: deploy/grafana/grafana.env.example
+      - path: deploy/grafana/grafana.env
+        required: false
+    volumes:
+      - ./deploy/grafana:/servmon/deploy/grafana:ro
+      - ${SERVMON_DATA:-./data}/grafana:/servmon/data/grafana
+    ports:
+      - "${BIND_ADDR:-127.0.0.1}:${GRAFANA_PORT:-3300}:3300"

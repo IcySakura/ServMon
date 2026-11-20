@@ -1,0 +1,37 @@
+# servmon configuration -------------------------------------------------------
+
+[collector]
+listen = "127.0.0.1:9877"      # Prometheus scrapes /metrics here
+interval = 15                  # seconds between snapshots on each server
+archive_dir = "data/archive"   # raw JSONL snapshots (gzip'd daily); "" disables
+archive_every = 60             # seconds between archived snapshots per host
+
+[agent]                        # forwarded to servmon/agent.py on each server
+job_min_cpu = 0.1              # a job is exported if it uses >= this many cores ...
+job_min_mem_mb = 512           # ... or holds >= this much anon RAM, or any VRAM
+idle_cpu = 0.02                # cores; below this a job is "CPU idle"
+idle_sm = 1.0                  # SM %;  below this a job is "GPU idle"
+idle_gpu_mem_mb = 256          # VRAM held while GPU-idle that counts as waste
+idle_ram_mb = 1024             # RAM held while CPU-idle that counts as waste
+idle_after = 600               # seconds a job must stay idle before it is flagged
+
+# One block per server (see docs/adding-a-server.md).
+#   name   = label used in every dashboard; keep it stable (renaming starts a new history)
+#   ssh    = Host alias from ~/.ssh/config (or user@hostname); must work with BatchMode=yes
+#   python = interpreter on the server (default "python3"), e.g. "/usr/bin/python3.10"
+#   no_gpu = true for servers without NVIDIA GPUs / nvidia-smi
+[[host]]
+name = "cali"
+ssh = "ucla-cali-server"
+
+[[host]]
+name = "georgia"
+ssh = "ucla-georgia-server"
+
+[[host]]
+name = "oregon"
+ssh = "ucla-oregon-server"
+
+[[host]]
+name = "virginia"
+ssh = "ucla-virginia-server"

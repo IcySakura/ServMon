@@ -1,0 +1,4 @@
+# the collector image only needs servmon/ (keeps data/ and vendor/ out of the build context)
+*
+!servmon/
+servmon/__pycache__

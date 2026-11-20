@@ -1,0 +1,10 @@
+apiVersion: 1
+providers:
+  - name: servmon
+    folder: Servers
+    type: file
+    allowUiUpdates: true
+    updateIntervalSeconds: 30
+    options:
+      path: $SERVMON_ROOT/deploy/grafana/dashboards
+      foldersFromFilesStructure: false
