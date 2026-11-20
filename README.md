@@ -114,3 +114,25 @@ docs/                        guides (see above)
 data/                        Prometheus TSDB, Grafana DB, raw archive   (git-ignored)
 vendor/                      native-mode binaries                       (git-ignored)
 ```
+
+## Credits
+
+servmon is glue around these projects. None of their code is included in this repository;
+the container images and binaries are downloaded when you install.
+
+| Project | Used for | License |
+|---|---|---|
+| [Prometheus](https://prometheus.io) | metric storage and queries | Apache-2.0 |
+| [Grafana](https://grafana.com/oss/grafana/) | dashboards, logins | AGPL-3.0 |
+| [Podman](https://podman.io) / Quadlet | running the stack under systemd | Apache-2.0 |
+| [OpenSSH](https://www.openssh.com) | connections to the servers | BSD-style |
+| [Python](https://www.python.org) | agent and collector (standard library only) | PSF License |
+| [cloudflared](https://github.com/cloudflare/cloudflared) | optional: reaching servers or publishing through Cloudflare Tunnel | Apache-2.0 |
+| NVIDIA `nvidia-smi` (driver utilities) | GPU and per-process GPU readings on the servers | NVIDIA driver license |
+
+Grafana is used unmodified, so its AGPL terms add no obligations for this repository. If
+you modify Grafana itself and serve it to others, the AGPL applies to those changes.
+
+## License
+
+MIT; see [LICENSE](LICENSE). The projects above keep their own licenses.
